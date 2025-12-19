@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Teacher Dashboard</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Removed external FontAwesome link for speed -->
     <style>
         :root {
             --primary-color: #0F9E99;
@@ -23,7 +23,7 @@
             padding: 0;
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start;
             min-height: 100vh;
         }
 
@@ -31,7 +31,7 @@
             width: 100%;
             display: flex;
             justify-content: center;
-            padding: 20px;
+            padding: 40px 20px;
         }
 
         .dashboard-card {
@@ -40,7 +40,7 @@
             border-radius: 20px;
             box-shadow: 0 8px 20px rgba(15, 158, 153, 0.15);
             width: 100%;
-            max-width: 360px;
+            max-width: 400px;
             text-align: center;
             border-top: 6px solid var(--primary-color);
         }
@@ -48,12 +48,23 @@
         h2 {
             color: var(--primary-color);
             margin-top: 0;
-            margin-bottom: 35px;
+            margin-bottom: 25px;
             font-size: 26px;
             font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
         }
 
-        .action-btn, .action-row {
+        h2 svg {
+            fill: var(--primary-color);
+            width: 28px;
+            height: 28px;
+        }
+
+        /* Unified Button Styles */
+        .action-btn, .action-row, .modal-trigger-btn {
             display: flex;
             align-items: center;
             background-color: var(--primary-color);
@@ -66,21 +77,41 @@
             transition: all 0.2s ease-in-out;
             border: 2px solid transparent;
             box-sizing: border-box;
+            cursor: pointer;
+            width: 100%;
+            border: none;
+            font-family: inherit;
+            padding: 16px 20px; /* Consistent padding for all */
+            text-align: left;
         }
 
-        .action-btn { padding: 16px 20px; }
-        .action-row { padding: 10px 15px; justify-content: space-between; flex-wrap: wrap; }
+        /* Special layout for the row with input */
+        .action-row {
+            padding: 10px 15px; 
+            justify-content: space-between; 
+            flex-wrap: wrap; 
+        }
 
-        .action-btn i, .label-part i {
-            font-size: 20px;
-            width: 40px;
-            text-align: center;
-            border-right: 1px solid rgba(255,255,255,0.2);
+        /* SVG Icon Styling */
+        .action-btn svg, .label-part svg, .modal-trigger-btn svg.main-icon {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
             margin-right: 15px;
-            padding-right: 5px;
+            padding-right: 15px;
+            border-right: 1px solid rgba(255,255,255,0.2);
+            flex-shrink: 0;
         }
 
-        .label-part { display: flex; align-items: center; }
+        /* UPDATED: Label part is now an anchor tag */
+        a.label-part { 
+            display: flex; 
+            align-items: center;
+            flex-grow: 1; /* Allows the click area to expand */
+            text-decoration: none;
+            color: inherit;
+            height: 100%;
+        }
 
         .small-input {
             width: 60px;
@@ -107,16 +138,139 @@
             align-items: center;
             justify-content: center;
         }
+        
+        .inline-send-btn svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+        }
 
         .inline-send-btn:hover { background-color: var(--accent-green); }
-        .action-btn:hover, .action-row:hover {
+
+        .action-btn:hover, .action-row:hover, .modal-trigger-btn:hover {
             background-color: var(--primary-hover);
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
 
+        /* --- MODAL STYLES --- */
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 1000; 
+            left: 0;
+            top: 0;
+            width: 100%; 
+            height: 100%; 
+            overflow: auto; 
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 25px;
+            border: 1px solid #888;
+            width: 90%;
+            max-width: 350px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            animation: slideIn 0.3s ease-out;
+            position: relative;
+        }
+
+        @keyframes slideIn {
+            from {transform: translateY(-50px); opacity: 0;}
+            to {transform: translateY(0); opacity: 1;}
+        }
+
+        .close-modal {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            position: absolute;
+            right: 20px;
+            top: 10px;
+            line-height: 1;
+        }
+
+        .close-modal:hover { color: var(--primary-color); }
+
+        .modal h3 {
+            color: var(--primary-color);
+            margin-top: 0;
+            text-align: center;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .modal h3 svg {
+            fill: var(--primary-color);
+            width: 24px;
+            height: 24px;
+        }
+
+        .form-group { margin-bottom: 12px; }
+
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box;
+            transition: border-color 0.3s;
+        }
+
+        .form-input:focus { border-color: var(--primary-color); outline: none; }
+
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--accent-green);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .submit-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+
+        .submit-btn:hover { background-color: #1ebc57; }
+
+        /* Spinner Animation */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .spinner {
+            animation: spin 1s linear infinite;
+        }
+
         /* Status Message Styles */
-        #statusMsg {
+        #statusMsg, #sessionStatusMsg {
             width: 100%;
             font-size: 14px;
             margin-top: 10px;
@@ -124,13 +278,15 @@
             padding: 8px;
             border-radius: 8px;
             text-align: center;
+            word-break: break-word;
+            flex-basis: 100%; /* Forces status message to new line in flex wrap */
         }
         .status-error { background-color: #ffebee; color: var(--error-red); border: 1px solid var(--error-red); }
         .status-success { background-color: #e8f5e9; color: #2e7d32; border: 1px solid #2e7d32; }
 
         @media (max-width: 480px) {
             .dashboard-card { padding: 30px 20px; }
-            .action-btn, .action-row { font-size: 16px; }
+            .action-btn, .action-row, .modal-trigger-btn { font-size: 16px; }
             .small-input { width: 50px; }
         }
     </style>
@@ -139,93 +295,220 @@
 
     <div class="container">
         <div class="dashboard-card">
-            <h2><i class="fa-solid fa-graduation-cap"></i> Dashboard</h2>
+            <h2>
+                <!-- Graduation Cap Icon -->
+                <svg viewBox="0 0 640 512"><path d="M622.34 153.2L343.4 67.5c-15.2-4.67-31.6-4.67-46.79 0L17.66 153.2c-23.54 7.23-23.54 40.36 0 47.59l279 85.85c15.2 4.67 31.6 4.67 46.79 0l20.59-6.33V320c0 17.67 14.33 32 32 32s32-14.33 32-32V270.8l194.3-59.8c23.54-7.23 23.54-40.36 0-47.59zM320 352c-44.19 0-86.67-9.9-122.4-26.48-5.33-2.48-11.69.17-13.36 6.08l-14.72 52.38c-1.84 6.54 2.05 13.3 8.42 15.18C219.7 411.6 268.3 416 320 416c51.7 0 100.3-4.41 142.1-16.84 6.37-1.89 10.26-8.64 8.42-15.18l-14.72-52.38c-1.67-5.91-8.03-8.56-13.36-6.08C406.7 342.1 364.2 352 320 352z"/></svg>
+                Dashboard
+            </h2>
             
-            <!-- Attendance Input Row -->
+            <!-- 1. Combined Attendance Section -->
+            <!-- FIXED: Removed onclick JS error, used simple <a> tag for label part -->
             <div class="action-row">
-                <div class="label-part">
-                    <i class="fa-solid fa-clipboard-user"></i>
+                
+                <!-- This part is now a link (<a>) so it handles the redirect natively -->
+                <a href="attendance.html" class="label-part" title="Go to Attendance Page">
+                    <!-- Checkbox Icon -->
+                    <svg viewBox="0 0 448 512"><path d="M64 32C28.7 32 0 60.7 0 96V416c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V96c0-35.3-28.7-64-64-64H64zM337 209L209 337c-9.4 9.4-24.6 9.4-33.9 0l-64-64c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l47 47L303 175c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9z"/></svg>
                     <span>Attendance</span>
-                </div>
+                </a>
+                
+                <!-- Input & Send Button -->
                 <div style="display:flex; align-items:center;">
                     <input type="number" id="attNumber" class="small-input" placeholder="#">
                     <button onclick="sendAttendance()" class="inline-send-btn">
-                        <i class="fa-solid fa-paper-plane"></i>
+                        <!-- Paper Plane Icon -->
+                        <svg viewBox="0 0 512 512"><path d="M498.1 5.6c10.1 7 15.4 19.1 13.5 31.2l-64 416c-1.5 9.7-7.4 18.2-16 23s-18.9 5.4-28 1.6L284 427.7l-68.5 74.1c-8.9 9.7-22.9 12.9-35.2 8.1S160 493.2 160 480V396.4c0-4 1.5-7.8 4.2-10.7L331.8 202.8c5.8-6.3 5.6-16-.4-22s-15.7-6.4-22-.7L106 360.8 17.7 316.6C7.1 311.3 .3 300.7 0 288.9s5.9-22.8 16.1-28.7l448-256c10.7-6.1 23.9-5.5 34 1.4z"/></svg>
                     </button>
                 </div>
-                <!-- Status Message Area -->
+                
                 <div id="statusMsg"></div>
             </div>
-            
+
             <a href="Hw.html" class="action-btn">
-                <i class="fa-solid fa-book-open"></i>
+                <!-- Book Icon -->
+                <svg viewBox="0 0 448 512"><path d="M96 0C43 0 0 43 0 96V416c0 53 43 96 96 96H384h32c17.7 0 32-14.3 32-32s-14.3-32-32-32V384c17.7 0 32-14.3 32-32V32c0-17.7-14.3-32-32-32H384 96zm0 384H352v64H96c-17.7 0-32-14.3-32-32s14.3-32 32-32zm32-240c0-8.8 7.2-16 16-16H336c8.8 0 16 7.2 16 16s-7.2 16-16 16H144c-8.8 0-16-7.2-16-16zm0 64c0-8.8 7.2-16 16-16H336c8.8 0 16 7.2 16 16s-7.2 16-16 16H144c-8.8 0-16-7.2-16-16zm0 64c0-8.8 7.2-16 16-16H336c8.8 0 16 7.2 16 16s-7.2 16-16 16H144c-8.8 0-16-7.2-16-16z"/></svg>
                 Send HW
             </a>
             
             <a href="http://bulkwaha_bot.com" class="action-btn">
-                <i class="fa-brands fa-whatsapp"></i>
+                <!-- WhatsApp Icon -->
+                <svg viewBox="0 0 448 512"><path d="M380.9 97.1C339 55.1 283.2 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L0 480l117.7-30.9c32.4 17.7 68.9 27 106.1 27h.1c122.3 0 224.1-99.6 224.1-222 0-59.3-25.2-115-67.1-157zm-157 341.6c-33.2 0-65.7-8.9-94-25.7l-6.7-4-69.8 18.3L72 359.2l-4.4-7c-18.5-29.4-28.2-63.3-28.2-98.2 0-101.7 82.8-184.5 184.6-184.5 49.3 0 95.6 19.2 130.4 54.1 34.8 34.9 56.2 81.2 56.1 130.5 0 101.8-84.9 184.6-186.6 184.6zm101.2-138.2c-5.5-2.8-32.8-16.2-37.9-18-5.1-1.9-8.8-2.8-12.5 2.8-3.7 5.6-14.3 18-17.6 21.8-3.2 3.7-6.5 4.2-12 1.4-32.6-16.3-54-29.1-75.5-66-5.7-9.8 5.7-9.1 16.3-30.3 1.8-3.7 .9-6.9-.5-9.7-1.4-2.8-12.5-30.1-17.1-41.2-4.5-10.8-9.1-9.3-12.5-9.5-3.2-.2-6.9-.2-10.6-.2-3.7 0-9.7 1.4-14.8 6.9-5.1 5.6-19.4 19-19.4 46.3 0 27.3 19.9 53.7 22.6 57.4 2.8 3.7 39.1 59.7 94.8 83.8 35.2 15.2 49 16.5 66.6 13.9 10.7-1.6 32.8-13.4 37.4-26.4 4.6-13 4.6-24.1 3.2-26.4-1.3-2.5-5-3.9-10.5-6.6z"/></svg>
                 Send Marks File
             </a>
+
+            <!-- New Session Modal Trigger Button -->
+            <!-- Adjusted class and structure to match others exactly -->
+            <button class="modal-trigger-btn" onclick="openModal()">
+                <!-- Video Icon -->
+                <svg class="main-icon" viewBox="0 0 576 512"><path d="M0 128C0 92.7 28.7 64 64 64H320c35.3 0 64 28.7 64 64V384c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V128zM559.1 99.8c10.4 5.6 16.9 16.4 16.9 28.2V384c0 11.8-6.5 22.6-16.9 28.2s-23 5-32.9-1.6l-96-64L416 337.1V320 192 174.9l14.2-9.5 96-64c9.8-6.5 22.4-7.2 32.9-1.6z"/></svg>
+                <span>Add Session</span>
+            </button>
+
+        </div>
+    </div>
+
+    <!-- The Modal -->
+    <div id="sessionModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+            <h3>
+                <!-- Video Icon -->
+                <svg viewBox="0 0 576 512"><path d="M0 128C0 92.7 28.7 64 64 64H320c35.3 0 64 28.7 64 64V384c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V128zM559.1 99.8c10.4 5.6 16.9 16.4 16.9 28.2V384c0 11.8-6.5 22.6-16.9 28.2s-23 5-32.9-1.6l-96-64L416 337.1V320 192 174.9l14.2-9.5 96-64c9.8-6.5 22.4-7.2 32.9-1.6z"/></svg>
+                Session Details
+            </h3>
+            
+            <div class="form-group">
+                <input type="text" id="zoomLink" class="form-input" placeholder="Zoom Link">
+            </div>
+            <div class="form-group">
+                <input type="text" id="zoomId" class="form-input" placeholder="Zoom ID">
+            </div>
+            <div class="form-group">
+                <input type="text" id="zoomPass" class="form-input" placeholder="Zoom Password">
+            </div>
+            <div class="form-group">
+                <input type="number" id="sessionNum" class="form-input" placeholder="Session Number">
+            </div>
+            
+            <button onclick="sendSessionDetails()" id="btnSession" class="submit-btn">
+                <!-- Paper Plane Icon -->
+                <svg viewBox="0 0 512 512"><path d="M498.1 5.6c10.1 7 15.4 19.1 13.5 31.2l-64 416c-1.5 9.7-7.4 18.2-16 23s-18.9 5.4-28 1.6L284 427.7l-68.5 74.1c-8.9 9.7-22.9 12.9-35.2 8.1S160 493.2 160 480V396.4c0-4 1.5-7.8 4.2-10.7L331.8 202.8c5.8-6.3 5.6-16-.4-22s-15.7-6.4-22-.7L106 360.8 17.7 316.6C7.1 311.3 .3 300.7 0 288.9s5.9-22.8 16.1-28.7l448-256c10.7-6.1 23.9-5.5 34 1.4z"/></svg>
+                Send Details
+            </button>
+            <div id="sessionStatusMsg"></div>
         </div>
     </div>
 
     <script>
-        function showStatus(msg, type) {
-            const el = document.getElementById('statusMsg');
+        // Store Icons for JS use
+        const spinnerSVG = `<svg class="spinner" viewBox="0 0 512 512"><path d="M304 48c0 26.51-21.49 48-48 48s-48-21.49-48-48 21.49-48 48-48 48 21.49 48 48zm-48 368c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.49-48-48-48zm208-208c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.49-48-48-21.49-48-48-48zM96 256c0-26.51-21.49-48-48-48S0 229.49 0 256s21.49 48 48 48 48-21.49 48-48zm12.922 99.078c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48c0-26.509-21.491-48-48-48zm294.156 0c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48c0-26.509-21.49-48-48-48zM108.922 60.922c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.491-48-48-48z" fill="currentColor"/></svg>`;
+        
+        // --- Modal Functions ---
+        const modal = document.getElementById("sessionModal");
+
+        function openModal() {
+            modal.style.display = "flex";
+        }
+
+        function closeModal() {
+            modal.style.display = "none";
+            document.getElementById('sessionStatusMsg').style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+
+        function showStatus(elementId, msg, type) {
+            const el = document.getElementById(elementId);
             el.style.display = 'block';
             el.className = type === 'error' ? 'status-error' : 'status-success';
             el.innerText = msg;
         }
 
+        // --- 1. Send Attendance (Restored) ---
         function sendAttendance() {
             const number = document.getElementById('attNumber').value;
             const btn = document.querySelector('.inline-send-btn');
-            const originalIcon = btn.innerHTML;
+            const originalContent = btn.innerHTML;
             
             if (!number) {
-                showStatus("Please enter a number.", "error");
+                showStatus('statusMsg', "Please enter a number.", "error");
                 return;
             }
 
-            // Clear previous status
             document.getElementById('statusMsg').style.display = 'none';
-
-            // 1. Prepare Data
+            // NEW API LINK IF NEEDED
             const targetUrl = "https://api.mark-attendance.com/webhook/809cc1ba-5021-41ea-8313-af352f55efd7";
             const proxyUrl = "https://corsproxy.io/?" + encodeURIComponent(targetUrl);
 
-            // Show loading
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+            btn.innerHTML = spinnerSVG;
             btn.disabled = true;
 
-            // 2. Send Request
             fetch(proxyUrl, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                // Sending as string inside JSON (safer for some webhooks)
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                 body: JSON.stringify({ number: number.toString() }) 
             })
             .then(async response => {
                 const text = await response.text();
-                
                 if (response.ok) {
-                    showStatus("Success! Attendance sent.", "success");
+                    showStatus('statusMsg', "Success! Attendance sent.", "success");
                     document.getElementById('attNumber').value = ''; 
                 } else {
-                    // Show exact error from server
-                    console.log("Server Error:", text);
-                    showStatus(`Error (${response.status}): ${text.substring(0, 50)}...`, "error");
+                    let displayMsg = `Error (${response.status})`;
+                    try {
+                        const jsonError = JSON.parse(text);
+                        if(jsonError.message) displayMsg += `: ${jsonError.message}`;
+                        else displayMsg += `: ${text}`;
+                    } catch(e) { displayMsg += `: ${text}`; }
+                    showStatus('statusMsg', displayMsg.substring(0, 100), "error");
                 }
             })
             .catch(error => {
-                console.error('Network Error:', error);
-                showStatus("Network/Proxy Error. Try again.", "error");
+                showStatus('statusMsg', "Network/Proxy Error. Try again.", "error");
             })
             .finally(() => {
-                btn.innerHTML = originalIcon;
+                btn.innerHTML = originalContent;
+                btn.disabled = false;
+            });
+        }
+
+        // --- 2. Send Session Details ---
+        function sendSessionDetails() {
+            const zoomLink = document.getElementById('zoomLink').value;
+            const zoomId = document.getElementById('zoomId').value;
+            const zoomPass = document.getElementById('zoomPass').value;
+            const sessionNum = document.getElementById('sessionNum').value;
+            
+            const btn = document.getElementById('btnSession');
+            const originalContent = btn.innerHTML;
+
+            if (!zoomLink || !zoomId || !zoomPass || !sessionNum) {
+                showStatus('sessionStatusMsg', "Please fill in all fields.", "error");
+                return;
+            }
+
+            document.getElementById('sessionStatusMsg').style.display = 'none';
+
+            const targetUrl = "https://api.mark-attendance.com/webhook/session-details";
+            const proxyUrl = "https://corsproxy.io/?" + encodeURIComponent(targetUrl);
+
+            btn.innerHTML = spinnerSVG + " Sending...";
+            btn.disabled = true;
+
+            const payload = {
+                zoomLink: zoomLink,
+                zoomId: zoomId,
+                zoomPassword: zoomPass,
+                sessionNumber: parseInt(sessionNum)
+            };
+
+            fetch(proxyUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(async response => {
+                const text = await response.text();
+                if (response.ok) {
+                    showStatus('sessionStatusMsg', "Session Details Sent!", "success");
+                } else {
+                    let displayMsg = `Error (${response.status})`;
+                    try {
+                        const jsonError = JSON.parse(text);
+                        if(jsonError.message) displayMsg += `: ${jsonError.message}`;
+                    } catch(e) { displayMsg += `: ${text}`; }
+                    showStatus('sessionStatusMsg', displayMsg.substring(0, 60), "error");
+                }
+            })
+            .catch(error => {
+                showStatus('sessionStatusMsg', "Network Error. Check connection.", "error");
+            })
+            .finally(() => {
+                btn.innerHTML = originalContent;
                 btn.disabled = false;
             });
         }
