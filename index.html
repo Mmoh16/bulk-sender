@@ -4,17 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Teacher Dashboard</title>
-    <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            /* Theme Colors */
-            --primary-color: #0F9E99;  /* Tropical Teal */
-            --primary-hover: #0b7a76;  /* Darker Teal */
-            --bg-color: #EFE9E0;       /* Soft Ivory */
-            --card-bg: #FFFFFF;        /* White */
-            --text-color: #333333;     /* Dark Gray */
-            --accent-green: #25D366;   /* WhatsApp Green */
+            --primary-color: #0F9E99;
+            --primary-hover: #0b7a76;
+            --bg-color: #EFE9E0;
+            --card-bg: #FFFFFF;
+            --text-color: #333333;
+            --accent-green: #25D366;
+            --error-red: #d32f2f;
         }
 
         body {
@@ -52,10 +51,8 @@
             margin-bottom: 35px;
             font-size: 26px;
             font-weight: 700;
-            letter-spacing: 0.5px;
         }
 
-        /* General Button Style */
         .action-btn, .action-row {
             display: flex;
             align-items: center;
@@ -71,17 +68,9 @@
             box-sizing: border-box;
         }
 
-        .action-btn {
-            padding: 16px 20px;
-        }
+        .action-btn { padding: 16px 20px; }
+        .action-row { padding: 10px 15px; justify-content: space-between; flex-wrap: wrap; }
 
-        /* Specific styles for the input row to align items */
-        .action-row {
-            padding: 10px 15px;
-            justify-content: space-between;
-        }
-
-        /* Common Icon Styling */
         .action-btn i, .label-part i {
             font-size: 20px;
             width: 40px;
@@ -91,12 +80,8 @@
             padding-right: 5px;
         }
 
-        .label-part {
-            display: flex;
-            align-items: center;
-        }
+        .label-part { display: flex; align-items: center; }
 
-        /* Input Field Styling */
         .small-input {
             width: 60px;
             padding: 8px;
@@ -110,7 +95,6 @@
             font-size: 16px;
         }
 
-        /* Send Button Styling */
         .inline-send-btn {
             background: rgba(255, 255, 255, 0.2);
             border: none;
@@ -124,19 +108,25 @@
             justify-content: center;
         }
 
-        .inline-send-btn:hover {
-            background-color: var(--accent-green);
-        }
-
+        .inline-send-btn:hover { background-color: var(--accent-green); }
         .action-btn:hover, .action-row:hover {
             background-color: var(--primary-hover);
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
 
-        .action-btn:last-child {
-            margin-bottom: 0;
+        /* Status Message Styles */
+        #statusMsg {
+            width: 100%;
+            font-size: 14px;
+            margin-top: 10px;
+            display: none;
+            padding: 8px;
+            border-radius: 8px;
+            text-align: center;
         }
+        .status-error { background-color: #ffebee; color: var(--error-red); border: 1px solid var(--error-red); }
+        .status-success { background-color: #e8f5e9; color: #2e7d32; border: 1px solid #2e7d32; }
 
         @media (max-width: 480px) {
             .dashboard-card { padding: 30px 20px; }
@@ -157,10 +147,14 @@
                     <i class="fa-solid fa-clipboard-user"></i>
                     <span>Attendance</span>
                 </div>
-                <input type="number" id="attNumber" class="small-input" placeholder="#">
-                <button onclick="sendAttendance()" class="inline-send-btn">
-                    <i class="fa-solid fa-paper-plane"></i>
-                </button>
+                <div style="display:flex; align-items:center;">
+                    <input type="number" id="attNumber" class="small-input" placeholder="#">
+                    <button onclick="sendAttendance()" class="inline-send-btn">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                </div>
+                <!-- Status Message Area -->
+                <div id="statusMsg"></div>
             </div>
             
             <a href="Hw.html" class="action-btn">
@@ -176,47 +170,61 @@
     </div>
 
     <script>
+        function showStatus(msg, type) {
+            const el = document.getElementById('statusMsg');
+            el.style.display = 'block';
+            el.className = type === 'error' ? 'status-error' : 'status-success';
+            el.innerText = msg;
+        }
+
         function sendAttendance() {
             const number = document.getElementById('attNumber').value;
+            const btn = document.querySelector('.inline-send-btn');
+            const originalIcon = btn.innerHTML;
             
             if (!number) {
-                alert("Please enter a number first.");
+                showStatus("Please enter a number.", "error");
                 return;
             }
 
-            // Original URL
-            const targetUrl = "https://api.mark-attendance.com/webhook/809cc1ba-5021-41ea-8313-af352f55efd7";
-            // FIXED: Using corsproxy.io to route the request and bypass browser blocks
-            const proxyUrl = "https://corsproxy.io/?" + encodeURIComponent(targetUrl);
-            
-            const btn = document.querySelector('.inline-send-btn');
-            const originalIcon = btn.innerHTML;
+            // Clear previous status
+            document.getElementById('statusMsg').style.display = 'none';
 
-            // Show loading state
+            // 1. Prepare Data
+            const targetUrl = "https://api.mark-attendance.com/webhook/809cc1ba-5021-41ea-8313-af352f55efd7";
+            const proxyUrl = "https://corsproxy.io/?" + encodeURIComponent(targetUrl);
+
+            // Show loading
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
             btn.disabled = true;
 
+            // 2. Send Request
             fetch(proxyUrl, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
                 },
-                body: JSON.stringify({ number: number })
+                // Sending as string inside JSON (safer for some webhooks)
+                body: JSON.stringify({ number: number.toString() }) 
             })
-            .then(response => {
+            .then(async response => {
+                const text = await response.text();
+                
                 if (response.ok) {
-                    alert("Attendance Sent Successfully!");
-                    document.getElementById('attNumber').value = ''; // Clear input
+                    showStatus("Success! Attendance sent.", "success");
+                    document.getElementById('attNumber').value = ''; 
                 } else {
-                    alert("Failed to send. Server responded with error.");
+                    // Show exact error from server
+                    console.log("Server Error:", text);
+                    showStatus(`Error (${response.status}): ${text.substring(0, 50)}...`, "error");
                 }
             })
             .catch(error => {
-                console.error('Error:', error);
-                alert("Network error. Please check your internet connection.");
+                console.error('Network Error:', error);
+                showStatus("Network/Proxy Error. Try again.", "error");
             })
             .finally(() => {
-                // Restore button state
                 btn.innerHTML = originalIcon;
                 btn.disabled = false;
             });
