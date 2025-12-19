@@ -8,13 +8,13 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            /* Theme Colors based on your request */
+            /* Theme Colors */
             --primary-color: #0F9E99;  /* Tropical Teal */
-            --primary-hover: #0b7a76;  /* Darker Teal for interaction */
+            --primary-hover: #0b7a76;  /* Darker Teal */
             --bg-color: #EFE9E0;       /* Soft Ivory */
             --card-bg: #FFFFFF;        /* White */
             --text-color: #333333;     /* Dark Gray */
-            --accent-green: #25D366;   /* WhatsApp Green Accent */
+            --accent-green: #25D366;   /* WhatsApp Green */
         }
 
         body {
@@ -39,7 +39,7 @@
             background-color: var(--card-bg);
             padding: 40px 30px;
             border-radius: 20px;
-            box-shadow: 0 8px 20px rgba(15, 158, 153, 0.15); /* Soft teal shadow */
+            box-shadow: 0 8px 20px rgba(15, 158, 153, 0.15);
             width: 100%;
             max-width: 360px;
             text-align: center;
@@ -55,12 +55,12 @@
             letter-spacing: 0.5px;
         }
 
-        .action-btn {
+        /* General Button Style */
+        .action-btn, .action-row {
             display: flex;
             align-items: center;
             background-color: var(--primary-color);
             color: white;
-            padding: 16px 20px;
             margin-bottom: 15px;
             border-radius: 12px;
             text-decoration: none;
@@ -68,10 +68,21 @@
             font-weight: 600;
             transition: all 0.2s ease-in-out;
             border: 2px solid transparent;
+            box-sizing: border-box;
         }
 
-        /* Icon styling within button */
-        .action-btn i {
+        .action-btn {
+            padding: 16px 20px;
+        }
+
+        /* Specific styles for the input row to align items */
+        .action-row {
+            padding: 10px 15px;
+            justify-content: space-between;
+        }
+
+        /* Common Icon Styling */
+        .action-btn i, .label-part i {
             font-size: 20px;
             width: 40px;
             text-align: center;
@@ -80,29 +91,57 @@
             padding-right: 5px;
         }
 
-        .action-btn:hover {
+        .label-part {
+            display: flex;
+            align-items: center;
+        }
+
+        /* Input Field Styling */
+        .small-input {
+            width: 60px;
+            padding: 8px;
+            border-radius: 8px;
+            border: none;
+            outline: none;
+            text-align: center;
+            font-weight: bold;
+            color: var(--text-color);
+            margin: 0 10px;
+            font-size: 16px;
+        }
+
+        /* Send Button Styling */
+        .inline-send-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 10px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .inline-send-btn:hover {
+            background-color: var(--accent-green);
+        }
+
+        .action-btn:hover, .action-row:hover {
             background-color: var(--primary-hover);
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-
-        .action-btn:active {
-            transform: translateY(0);
         }
 
         .action-btn:last-child {
             margin-bottom: 0;
         }
 
-        /* Mobile Adjustments */
         @media (max-width: 480px) {
-            .dashboard-card {
-                padding: 30px 20px;
-            }
-            .action-btn {
-                font-size: 16px;
-                padding: 15px;
-            }
+            .dashboard-card { padding: 30px 20px; }
+            .action-btn, .action-row { font-size: 16px; }
+            .small-input { width: 50px; }
         }
     </style>
 </head>
@@ -112,10 +151,17 @@
         <div class="dashboard-card">
             <h2><i class="fa-solid fa-graduation-cap"></i> Dashboard</h2>
             
-            <a href="attendance.html" class="action-btn">
-                <i class="fa-solid fa-clipboard-user"></i>
-                Send Attendance
-            </a>
+            <!-- Attendance Input Row -->
+            <div class="action-row">
+                <div class="label-part">
+                    <i class="fa-solid fa-clipboard-user"></i>
+                    <span>Attendance</span>
+                </div>
+                <input type="number" id="attNumber" class="small-input" placeholder="#">
+                <button onclick="sendAttendance()" class="inline-send-btn">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </button>
+            </div>
             
             <a href="Hw.html" class="action-btn">
                 <i class="fa-solid fa-book-open"></i>
@@ -129,5 +175,48 @@
         </div>
     </div>
 
+    <script>
+        function sendAttendance() {
+            const number = document.getElementById('attNumber').value;
+            
+            if (!number) {
+                alert("Please enter a number first.");
+                return;
+            }
+
+            const webhookUrl = "https://api.mark-attendance.com/webhook/809cc1ba-5021-41ea-8313-af352f55efd7";
+            const btn = document.querySelector('.inline-send-btn');
+            const originalIcon = btn.innerHTML;
+
+            // Show loading state
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+            btn.disabled = true;
+
+            fetch(webhookUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ number: number })
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert("Attendance Sent Successfully!");
+                    document.getElementById('attNumber').value = ''; // Clear input
+                } else {
+                    alert("Failed to send. Please try again.");
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert("Network error. Check your connection.");
+            })
+            .finally(() => {
+                // Restore button state
+                btn.innerHTML = originalIcon;
+                btn.disabled = false;
+            });
+        }
+    </script>
 </body>
 </html>
