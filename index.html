@@ -184,7 +184,11 @@
                 return;
             }
 
-            const webhookUrl = "https://api.mark-attendance.com/webhook/809cc1ba-5021-41ea-8313-af352f55efd7";
+            // Original URL
+            const targetUrl = "https://api.mark-attendance.com/webhook/809cc1ba-5021-41ea-8313-af352f55efd7";
+            // FIXED: Using corsproxy.io to route the request and bypass browser blocks
+            const proxyUrl = "https://corsproxy.io/?" + encodeURIComponent(targetUrl);
+            
             const btn = document.querySelector('.inline-send-btn');
             const originalIcon = btn.innerHTML;
 
@@ -192,7 +196,7 @@
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
             btn.disabled = true;
 
-            fetch(webhookUrl, {
+            fetch(proxyUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -204,12 +208,12 @@
                     alert("Attendance Sent Successfully!");
                     document.getElementById('attNumber').value = ''; // Clear input
                 } else {
-                    alert("Failed to send. Please try again.");
+                    alert("Failed to send. Server responded with error.");
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert("Network error. Check your connection.");
+                alert("Network error. Please check your internet connection.");
             })
             .finally(() => {
                 // Restore button state
