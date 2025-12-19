@@ -1,1 +1,1761 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Attendance</title>
+<style>
+:root {
+  --primary-color: #0F9E99; /* Tropical Teal */
+  --background-color: #EFE9E0; /* Soft Ivory */
+  --row-even-color: #E0F2F1; /* Bright/Light Teal */
+  --row-odd-color: #ffffff; /* White/Bright Ivory */
+}
+
+body { 
+  font-family: Arial, sans-serif; 
+  background: var(--background-color); 
+  padding: 20px; 
+}
+
+/* --- ADDED CONTROL PANEL STYLES --- */
+.controls {
+    background: white;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    color: white;
+    font-size: 14px;
+}
+.btn-start { background-color: var(--primary-color); }
+.btn-start:hover { opacity: 0.9; }
+.btn-stop { background-color: #dc3545; }
+.btn-stop:hover { background-color: #c82333; }
+
+.status-display {
+    font-weight: bold;
+    color: #555;
+    font-size: 14px;
+}
+.timer-count {
+    color: #d9534f;
+    font-family: monospace;
+    font-size: 1.2em;
+}
+
+/* --- TABLE CONTAINER (Rounded & Wide) --- */
+.table-section {
+    width: 95%;          /* Large Width */
+    margin: 20px auto;   /* Center the section */
+    border-radius: 15px; /* Rounded Corners */
+    overflow: hidden;    /* Clips the table corners */
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    background: white;
+}
+
+table { 
+  width: 100%; 
+  border-collapse: collapse; 
+  background: white; 
+}
+
+/* Alternating Row Colors */
+tr:nth-child(even) {
+    background-color: var(--row-even-color);
+}
+tr:nth-child(odd) {
+    background-color: var(--row-odd-color);
+}
+
+/* Highlight the active row being processed (overrides alternating) */
+tr.active-row {
+    background-color: rgba(15, 158, 153, 0.3) !important; /* Deeper teal tint */
+    border-left: 5px solid var(--primary-color);
+}
+/* ---------------------------------- */
+
+h2 {
+    color: var(--primary-color);
+}
+
+th, td { 
+  padding: 10px; 
+  border: 1px solid #ddd; 
+  text-align: left; 
+}
+th { 
+  background-color: var(--primary-color); 
+  color: white;
+  border-top: none; /* remove top border to fit rounded container */
+}
+
+/* --- MODIFICATIONS START --- */
+
+/* 'No.' Column (First column) */
+th:nth-child(1), td:nth-child(1) {
+  width: 5%; /* Narrower width for Numbering */
+  text-align: center;
+}
+
+/* 'Name' Column (Second column) */
+th:nth-child(2), td:nth-child(2) {
+  width: 50%; /* Adjusted width */
+}
+
+/* 'Done' Column (Third column) */
+th:nth-child(3), td:nth-child(3) {
+  width: 5%; /* Made narrower */
+  text-align: center; /* Center the checkbox */
+}
+
+input[type="checkbox"] { 
+  width: 15px;
+  height: 15px;
+  cursor: pointer; 
+  vertical-align: middle;
+}
+
+/* --- MODIFICATIONS END --- */
+
+a { 
+  color: var(--primary-color); 
+  font-weight: bold; 
+  text-decoration: none; 
+}
+a:hover { 
+  text-decoration: underline; 
+}
+</style>
+</head>
+<body>
+<h2>Student WhatsApp Links</h2>
+
+<!-- ADDED CONTROL PANEL HTML -->
+<div class="controls">
+    <button class="btn btn-start" onclick="startAutoSend()">Start Auto-Send (8s)</button>
+    <button class="btn btn-stop" onclick="stopAutoSend()">Stop</button>
+    <div class="status-display" id="statusText">Status: Ready</div>
+</div>
+
+<!-- Wrapped Table in a Section for Rounded Corners -->
+<div class="table-section">
+    <table>
+    <tr><th>No.</th><th>Name</th><th>Done</th><th>Message Link</th></tr>
+    
+    <tr id="row_0">
+      <td>1</td>
+      <td>kerolos ashraf</td>
+      <td><input type="checkbox" id="checkbox_0" name="sent_0" /></td>
+      <td><a href="https://wa.me/201070471234?text=Can%20i%20know%20why%20kerolos%20ashraf%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(0)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_1">
+      <td>2</td>
+      <td>kermena Romany</td>
+      <td><input type="checkbox" id="checkbox_1" name="sent_1" /></td>
+      <td><a href="https://wa.me/201278905808?text=Can%20i%20know%20why%20kermena%20Romany%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(1)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_2">
+      <td>3</td>
+      <td>Ibrahim hisham ibrahim alterri</td>
+      <td><input type="checkbox" id="checkbox_2" name="sent_2" /></td>
+      <td><a href="https://wa.me/201111735598?text=Can%20i%20know%20why%20Ibrahim%20hisham%20ibrahim%20alterri%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(2)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_3">
+      <td>4</td>
+      <td>Mariam Emad</td>
+      <td><input type="checkbox" id="checkbox_3" name="sent_3" /></td>
+      <td><a href="https://wa.me/201224241077?text=Can%20i%20know%20why%20Mariam%20Emad%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(3)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_4">
+      <td>5</td>
+      <td>Mostafa hatem</td>
+      <td><input type="checkbox" id="checkbox_4" name="sent_4" /></td>
+      <td><a href="https://wa.me/201002191339?text=Can%20i%20know%20why%20Mostafa%20hatem%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(4)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_5">
+      <td>6</td>
+      <td>Khadiga Mostafa Fayez</td>
+      <td><input type="checkbox" id="checkbox_5" name="sent_5" /></td>
+      <td><a href="https://wa.me/201019489002?text=Can%20i%20know%20why%20Khadiga%20Mostafa%20Fayez%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(5)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_6">
+      <td>7</td>
+      <td>Ahmed Amr Ahmed</td>
+      <td><input type="checkbox" id="checkbox_6" name="sent_6" /></td>
+      <td><a href="https://wa.me/201015667787?text=Can%20i%20know%20why%20Ahmed%20Amr%20Ahmed%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(6)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_7">
+      <td>8</td>
+      <td>Ereny Osama</td>
+      <td><input type="checkbox" id="checkbox_7" name="sent_7" /></td>
+      <td><a href="https://wa.me/201115725911?text=Can%20i%20know%20why%20Ereny%20Osama%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(7)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_8">
+      <td>9</td>
+      <td>Mariam mahmoud kamel</td>
+      <td><input type="checkbox" id="checkbox_8" name="sent_8" /></td>
+      <td><a href="https://wa.me/966566541632?text=Can%20i%20know%20why%20Mariam%20mahmoud%20kamel%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(8)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_9">
+      <td>10</td>
+      <td>joumana ibrahim mohamed</td>
+      <td><input type="checkbox" id="checkbox_9" name="sent_9" /></td>
+      <td><a href="https://wa.me/201069311999?text=Can%20i%20know%20why%20joumana%20ibrahim%20mohamed%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(9)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_10">
+      <td>11</td>
+      <td>Menna Mahmoud Dabour</td>
+      <td><input type="checkbox" id="checkbox_10" name="sent_10" /></td>
+      <td><a href="https://wa.me/201003181230?text=Can%20i%20know%20why%20Menna%20Mahmoud%20Dabour%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(10)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_11">
+      <td>12</td>
+      <td>Moaaz mohammed ahmed</td>
+      <td><input type="checkbox" id="checkbox_11" name="sent_11" /></td>
+      <td><a href="https://wa.me/201064805056?text=Can%20i%20know%20why%20Moaaz%20mohammed%20ahmed%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(11)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_12">
+      <td>13</td>
+      <td>Jessy Maged mourad Zaher</td>
+      <td><input type="checkbox" id="checkbox_12" name="sent_12" /></td>
+      <td><a href="https://wa.me/201271809302?text=Can%20i%20know%20why%20Jessy%20Maged%20mourad%20Zaher%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(12)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_13">
+      <td>14</td>
+      <td>Mamdoh talat farid abd el sayed</td>
+      <td><input type="checkbox" id="checkbox_13" name="sent_13" /></td>
+      <td><a href="https://wa.me/201281197700?text=Can%20i%20know%20why%20Mamdoh%20talat%20farid%20abd%20el%20sayed%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(13)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_14">
+      <td>15</td>
+      <td>Shehab Ahmed</td>
+      <td><input type="checkbox" id="checkbox_14" name="sent_14" /></td>
+      <td><a href="https://wa.me/201022430201?text=Can%20i%20know%20why%20Shehab%20Ahmed%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(14)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_15">
+      <td>16</td>
+      <td>Mariam Hatem</td>
+      <td><input type="checkbox" id="checkbox_15" name="sent_15" /></td>
+      <td><a href="https://wa.me/201221090038?text=Can%20i%20know%20why%20Mariam%20Hatem%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(15)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_16">
+      <td>17</td>
+      <td>Noran Abdelnaby Ramadan</td>
+      <td><input type="checkbox" id="checkbox_16" name="sent_16" /></td>
+      <td><a href="https://wa.me/201099863179?text=Can%20i%20know%20why%20Noran%20Abdelnaby%20Ramadan%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(16)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_17">
+      <td>18</td>
+      <td>Shrouk Moustafa Hamada</td>
+      <td><input type="checkbox" id="checkbox_17" name="sent_17" /></td>
+      <td><a href="https://wa.me/201023322183?text=Can%20i%20know%20why%20Shrouk%20Moustafa%20Hamada%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(17)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_18">
+      <td>19</td>
+      <td>Petra Basem khairy</td>
+      <td><input type="checkbox" id="checkbox_18" name="sent_18" /></td>
+      <td><a href="https://wa.me/201223644189?text=Can%20i%20know%20why%20Petra%20Basem%20khairy%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(18)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_19">
+      <td>20</td>
+      <td>Shahesta Mo’men Mohamed</td>
+      <td><input type="checkbox" id="checkbox_19" name="sent_19" /></td>
+      <td><a href="https://wa.me/201117599988?text=Can%20i%20know%20why%20Shahesta%20Mo%E2%80%99men%20Mohamed%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(19)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_20">
+      <td>21</td>
+      <td>Carol hany gerges</td>
+      <td><input type="checkbox" id="checkbox_20" name="sent_20" /></td>
+      <td><a href="https://wa.me/201206655745?text=Can%20i%20know%20why%20Carol%20hany%20gerges%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(20)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_21">
+      <td>22</td>
+      <td>Sherry atef Boshra</td>
+      <td><input type="checkbox" id="checkbox_21" name="sent_21" /></td>
+      <td><a href="https://wa.me/201027279685?text=Can%20i%20know%20why%20Sherry%20atef%20Boshra%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(21)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_22">
+      <td>23</td>
+      <td>Abdallah Mohamed Nabil</td>
+      <td><input type="checkbox" id="checkbox_22" name="sent_22" /></td>
+      <td><a href="https://wa.me/201009300623?text=Can%20i%20know%20why%20Abdallah%20Mohamed%20Nabil%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(22)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_23">
+      <td>24</td>
+      <td>menna omar</td>
+      <td><input type="checkbox" id="checkbox_23" name="sent_23" /></td>
+      <td><a href="https://wa.me/201022356607?text=Can%20i%20know%20why%20menna%20omar%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(23)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_24">
+      <td>25</td>
+      <td>makarius akram Shokralla</td>
+      <td><input type="checkbox" id="checkbox_24" name="sent_24" /></td>
+      <td><a href="https://wa.me/201004933631?text=Can%20i%20know%20why%20makarius%20akram%20Shokralla%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(24)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_25">
+      <td>26</td>
+      <td>Tasneem Ahmed Abd elkareem Alsayed Mohammed</td>
+      <td><input type="checkbox" id="checkbox_25" name="sent_25" /></td>
+      <td><a href="https://wa.me/201066446613?text=Can%20i%20know%20why%20Tasneem%20Ahmed%20Abd%20elkareem%20Alsayed%20Mohammed%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(25)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_26">
+      <td>27</td>
+      <td>Mostafa Mohamed Abdel_Aleem</td>
+      <td><input type="checkbox" id="checkbox_26" name="sent_26" /></td>
+      <td><a href="https://wa.me/201029655759?text=Can%20i%20know%20why%20Mostafa%20Mohamed%20Abdel_Aleem%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(26)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_27">
+      <td>28</td>
+      <td>Menna Hamada Ali Ahmed</td>
+      <td><input type="checkbox" id="checkbox_27" name="sent_27" /></td>
+      <td><a href="https://wa.me/201225164702?text=Can%20i%20know%20why%20Menna%20Hamada%20Ali%20Ahmed%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(27)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_28">
+      <td>29</td>
+      <td>abdelrhman mamdoh</td>
+      <td><input type="checkbox" id="checkbox_28" name="sent_28" /></td>
+      <td><a href="https://wa.me/201154025504?text=Can%20i%20know%20why%20abdelrhman%20mamdoh%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(28)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_29">
+      <td>30</td>
+      <td>Tarry wael sleem azer</td>
+      <td><input type="checkbox" id="checkbox_29" name="sent_29" /></td>
+      <td><a href="https://wa.me/201223264948?text=Can%20i%20know%20why%20Tarry%20wael%20sleem%20azer%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(29)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_30">
+      <td>31</td>
+      <td>Marvy hany adly</td>
+      <td><input type="checkbox" id="checkbox_30" name="sent_30" /></td>
+      <td><a href="https://wa.me/201222813893?text=Can%20i%20know%20why%20Marvy%20hany%20adly%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(30)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_31">
+      <td>32</td>
+      <td>Karen reda</td>
+      <td><input type="checkbox" id="checkbox_31" name="sent_31" /></td>
+      <td><a href="https://wa.me/201282467134?text=Can%20i%20know%20why%20Karen%20reda%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(31)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_32">
+      <td>33</td>
+      <td>Merola Rafat Dawood</td>
+      <td><input type="checkbox" id="checkbox_32" name="sent_32" /></td>
+      <td><a href="https://wa.me/201284651898?text=Can%20i%20know%20why%20Merola%20Rafat%20Dawood%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(32)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_33">
+      <td>34</td>
+      <td>Mina Romany Ramzy</td>
+      <td><input type="checkbox" id="checkbox_33" name="sent_33" /></td>
+      <td><a href="https://wa.me/201027043219?text=Can%20i%20know%20why%20Mina%20Romany%20Ramzy%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(33)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_34">
+      <td>35</td>
+      <td>Muaz Mohammed Esmat</td>
+      <td><input type="checkbox" id="checkbox_34" name="sent_34" /></td>
+      <td><a href="https://wa.me/201018971007?text=Can%20i%20know%20why%20Muaz%20Mohammed%20Esmat%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(34)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_35">
+      <td>36</td>
+      <td>Ganna shaker soliman</td>
+      <td><input type="checkbox" id="checkbox_35" name="sent_35" /></td>
+      <td><a href="https://wa.me/201001812220?text=Can%20i%20know%20why%20Ganna%20shaker%20soliman%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(35)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_36">
+      <td>37</td>
+      <td>Nancy Bemn wadie</td>
+      <td><input type="checkbox" id="checkbox_36" name="sent_36" /></td>
+      <td><a href="https://wa.me/201289510570?text=Can%20i%20know%20why%20Nancy%20Bemn%20wadie%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(36)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_37">
+      <td>38</td>
+      <td>Aya samy mohamed</td>
+      <td><input type="checkbox" id="checkbox_37" name="sent_37" /></td>
+      <td><a href="https://wa.me/201000897911?text=Can%20i%20know%20why%20Aya%20samy%20mohamed%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(37)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_38">
+      <td>39</td>
+      <td>Neamat ehab</td>
+      <td><input type="checkbox" id="checkbox_38" name="sent_38" /></td>
+      <td><a href="https://wa.me/201066635743?text=Can%20i%20know%20why%20Neamat%20ehab%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(38)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_39">
+      <td>40</td>
+      <td>Nour Aly</td>
+      <td><input type="checkbox" id="checkbox_39" name="sent_39" /></td>
+      <td><a href="https://wa.me/201006216721?text=Can%20i%20know%20why%20Nour%20Aly%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(39)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_40">
+      <td>41</td>
+      <td>Celia Hossam MOHAMED</td>
+      <td><input type="checkbox" id="checkbox_40" name="sent_40" /></td>
+      <td><a href="https://wa.me/201116993880?text=Can%20i%20know%20why%20Celia%20Hossam%20MOHAMED%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(40)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_41">
+      <td>42</td>
+      <td>Nezar Mohamed Mounir</td>
+      <td><input type="checkbox" id="checkbox_41" name="sent_41" /></td>
+      <td><a href="https://wa.me/201119077658?text=Can%20i%20know%20why%20Nezar%20Mohamed%20Mounir%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(41)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_42">
+      <td>43</td>
+      <td>Haya Amr Mohamed</td>
+      <td><input type="checkbox" id="checkbox_42" name="sent_42" /></td>
+      <td><a href="https://wa.me/201000896171?text=Can%20i%20know%20why%20Haya%20Amr%20Mohamed%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(42)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_43">
+      <td>44</td>
+      <td>Abdelrahman ayman Ibrahim</td>
+      <td><input type="checkbox" id="checkbox_43" name="sent_43" /></td>
+      <td><a href="https://wa.me/201011270649?text=Can%20i%20know%20why%20Abdelrahman%20ayman%20Ibrahim%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(43)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_44">
+      <td>45</td>
+      <td>Philopateer wahid</td>
+      <td><input type="checkbox" id="checkbox_44" name="sent_44" /></td>
+      <td><a href="https://wa.me/201220987444?text=Can%20i%20know%20why%20Philopateer%20wahid%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(44)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_45">
+      <td>46</td>
+      <td>Mariam wael</td>
+      <td><input type="checkbox" id="checkbox_45" name="sent_45" /></td>
+      <td><a href="https://wa.me/201285611205?text=Can%20i%20know%20why%20Mariam%20wael%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(45)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_46">
+      <td>47</td>
+      <td>Heaven wael mortagy</td>
+      <td><input type="checkbox" id="checkbox_46" name="sent_46" /></td>
+      <td><a href="https://wa.me/201224585654?text=Can%20i%20know%20why%20Heaven%20wael%20mortagy%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(46)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_47">
+      <td>48</td>
+      <td>عبد الرحمن محمد الداخلى</td>
+      <td><input type="checkbox" id="checkbox_47" name="sent_47" /></td>
+      <td><a href="https://wa.me/201099693992?text=Can%20i%20know%20why%20%D8%B9%D8%A8%D8%AF%20%D8%A7%D9%84%D8%B1%D8%AD%D9%85%D9%86%20%D9%85%D8%AD%D9%85%D8%AF%20%D8%A7%D9%84%D8%AF%D8%A7%D8%AE%D9%84%D9%89%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(47)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_48">
+      <td>49</td>
+      <td>يوسف نبيل سالم إبراهيم</td>
+      <td><input type="checkbox" id="checkbox_48" name="sent_48" /></td>
+      <td><a href="https://wa.me/201027460524?text=Can%20i%20know%20why%20%D9%8A%D9%88%D8%B3%D9%81%20%D9%86%D8%A8%D9%8A%D9%84%20%D8%B3%D8%A7%D9%84%D9%85%20%D8%A5%D8%A8%D8%B1%D8%A7%D9%87%D9%8A%D9%85%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(48)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_49">
+      <td>50</td>
+      <td>Alia Khaled</td>
+      <td><input type="checkbox" id="checkbox_49" name="sent_49" /></td>
+      <td><a href="https://wa.me/201006323558?text=Can%20i%20know%20why%20Alia%20Khaled%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(49)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_50">
+      <td>51</td>
+      <td>Habiba ahmed ismaiel</td>
+      <td><input type="checkbox" id="checkbox_50" name="sent_50" /></td>
+      <td><a href="https://wa.me/201005476269?text=Can%20i%20know%20why%20Habiba%20ahmed%20ismaiel%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(50)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_51">
+      <td>52</td>
+      <td>Jumana Ayman Mohamed</td>
+      <td><input type="checkbox" id="checkbox_51" name="sent_51" /></td>
+      <td><a href="https://wa.me/201002711356?text=Can%20i%20know%20why%20Jumana%20Ayman%20Mohamed%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(51)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_52">
+      <td>53</td>
+      <td>Jwana Ashraf</td>
+      <td><input type="checkbox" id="checkbox_52" name="sent_52" /></td>
+      <td><a href="https://wa.me/201155124836?text=Can%20i%20know%20why%20Jwana%20Ashraf%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(52)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_53">
+      <td>54</td>
+      <td>Rokaya abo Alion</td>
+      <td><input type="checkbox" id="checkbox_53" name="sent_53" /></td>
+      <td><a href="https://wa.me/201009609597?text=Can%20i%20know%20why%20Rokaya%20abo%20Alion%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(53)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_54">
+      <td>55</td>
+      <td>Seif Amgad Shokry Gayed</td>
+      <td><input type="checkbox" id="checkbox_54" name="sent_54" /></td>
+      <td><a href="https://wa.me/201002778248?text=Can%20i%20know%20why%20Seif%20Amgad%20Shokry%20Gayed%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(54)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_55">
+      <td>56</td>
+      <td>Samer sameh fayez</td>
+      <td><input type="checkbox" id="checkbox_55" name="sent_55" /></td>
+      <td><a href="https://wa.me/201278387281?text=Can%20i%20know%20why%20Samer%20sameh%20fayez%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(55)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_56">
+      <td>57</td>
+      <td>Sahar Ahmed Maher</td>
+      <td><input type="checkbox" id="checkbox_56" name="sent_56" /></td>
+      <td><a href="https://wa.me/201275716024?text=Can%20i%20know%20why%20Sahar%20Ahmed%20Maher%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(56)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_57">
+      <td>58</td>
+      <td>Mark micheal</td>
+      <td><input type="checkbox" id="checkbox_57" name="sent_57" /></td>
+      <td><a href="https://wa.me/201554960763?text=Can%20i%20know%20why%20Mark%20micheal%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(57)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_58">
+      <td>59</td>
+      <td>Jana Abdelhmed Haron</td>
+      <td><input type="checkbox" id="checkbox_58" name="sent_58" /></td>
+      <td><a href="https://wa.me/201005213704?text=Can%20i%20know%20why%20Jana%20Abdelhmed%20Haron%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(58)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_59">
+      <td>60</td>
+      <td>Mariam Mohamed Ahmed</td>
+      <td><input type="checkbox" id="checkbox_59" name="sent_59" /></td>
+      <td><a href="https://wa.me/201094742426?text=Can%20i%20know%20why%20Mariam%20Mohamed%20Ahmed%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(59)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_60">
+      <td>61</td>
+      <td>Omar Ahmed Khairy</td>
+      <td><input type="checkbox" id="checkbox_60" name="sent_60" /></td>
+      <td><a href="https://wa.me/201019603626?text=Can%20i%20know%20why%20Omar%20Ahmed%20Khairy%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(60)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_61">
+      <td>62</td>
+      <td>Asma Islam</td>
+      <td><input type="checkbox" id="checkbox_61" name="sent_61" /></td>
+      <td><a href="https://wa.me/201012986769?text=Can%20i%20know%20why%20Asma%20Islam%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(61)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_62">
+      <td>63</td>
+      <td>Mariam hisham Mohamed</td>
+      <td><input type="checkbox" id="checkbox_62" name="sent_62" /></td>
+      <td><a href="https://wa.me/201060830855?text=Can%20i%20know%20why%20Mariam%20hisham%20Mohamed%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(62)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_63">
+      <td>64</td>
+      <td>مارتن دافيد عادل حبيب</td>
+      <td><input type="checkbox" id="checkbox_63" name="sent_63" /></td>
+      <td><a href="https://wa.me/201282003844?text=Can%20i%20know%20why%20%D9%85%D8%A7%D8%B1%D8%AA%D9%86%20%D8%AF%D8%A7%D9%81%D9%8A%D8%AF%20%D8%B9%D8%A7%D8%AF%D9%84%20%D8%AD%D8%A8%D9%8A%D8%A8%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(63)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_64">
+      <td>65</td>
+      <td>Salma elroby</td>
+      <td><input type="checkbox" id="checkbox_64" name="sent_64" /></td>
+      <td><a href="https://wa.me/201030902323?text=Can%20i%20know%20why%20Salma%20elroby%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(64)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_65">
+      <td>66</td>
+      <td>Nourhan Ashraf Abou Hashish</td>
+      <td><input type="checkbox" id="checkbox_65" name="sent_65" /></td>
+      <td><a href="https://wa.me/201009826519?text=Can%20i%20know%20why%20Nourhan%20Ashraf%20Abou%20Hashish%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(65)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_66">
+      <td>67</td>
+      <td>Mariam Atef Khalil</td>
+      <td><input type="checkbox" id="checkbox_66" name="sent_66" /></td>
+      <td><a href="https://wa.me/201159523270?text=Can%20i%20know%20why%20Mariam%20Atef%20Khalil%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(66)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_67">
+      <td>68</td>
+      <td>Alia Hisham Diab</td>
+      <td><input type="checkbox" id="checkbox_67" name="sent_67" /></td>
+      <td><a href="https://wa.me/201005043777?text=Can%20i%20know%20why%20Alia%20Hisham%20Diab%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(67)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_68">
+      <td>69</td>
+      <td>Hana wael soliman</td>
+      <td><input type="checkbox" id="checkbox_68" name="sent_68" /></td>
+      <td><a href="https://wa.me/201004450545?text=Can%20i%20know%20why%20Hana%20wael%20soliman%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(68)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_69">
+      <td>70</td>
+      <td>fady atef awed</td>
+      <td><input type="checkbox" id="checkbox_69" name="sent_69" /></td>
+      <td><a href="https://wa.me/201227827605?text=Can%20i%20know%20why%20fady%20atef%20awed%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(69)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_70">
+      <td>71</td>
+      <td>Malek Wael Salah</td>
+      <td><input type="checkbox" id="checkbox_70" name="sent_70" /></td>
+      <td><a href="https://wa.me/201001662468?text=Can%20i%20know%20why%20Malek%20Wael%20Salah%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(70)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_71">
+      <td>72</td>
+      <td>Nour khaled Mohamed abdelhameed</td>
+      <td><input type="checkbox" id="checkbox_71" name="sent_71" /></td>
+      <td><a href="https://wa.me/201145593884?text=Can%20i%20know%20why%20Nour%20khaled%20Mohamed%20abdelhameed%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(71)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_72">
+      <td>73</td>
+      <td>Farida Amin Elhawary</td>
+      <td><input type="checkbox" id="checkbox_72" name="sent_72" /></td>
+      <td><a href="https://wa.me/201014954163?text=Can%20i%20know%20why%20Farida%20Amin%20Elhawary%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(72)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_73">
+      <td>74</td>
+      <td>youmna alaa</td>
+      <td><input type="checkbox" id="checkbox_73" name="sent_73" /></td>
+      <td><a href="https://wa.me/201050471990?text=Can%20i%20know%20why%20youmna%20alaa%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(73)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_74">
+      <td>75</td>
+      <td>Peter ghaly</td>
+      <td><input type="checkbox" id="checkbox_74" name="sent_74" /></td>
+      <td><a href="https://wa.me/201200394583?text=Can%20i%20know%20why%20Peter%20ghaly%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(74)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_75">
+      <td>76</td>
+      <td>Youssef sultan abohashime</td>
+      <td><input type="checkbox" id="checkbox_75" name="sent_75" /></td>
+      <td><a href="https://wa.me/201091266909?text=Can%20i%20know%20why%20Youssef%20sultan%20abohashime%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(75)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_76">
+      <td>77</td>
+      <td>Mohamed Yasser Mohamed</td>
+      <td><input type="checkbox" id="checkbox_76" name="sent_76" /></td>
+      <td><a href="https://wa.me/201221892946?text=Can%20i%20know%20why%20Mohamed%20Yasser%20Mohamed%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(76)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_77">
+      <td>78</td>
+      <td>Ashrakat Mohamed Mohamed Ahmed</td>
+      <td><input type="checkbox" id="checkbox_77" name="sent_77" /></td>
+      <td><a href="https://wa.me/201008914890?text=Can%20i%20know%20why%20Ashrakat%20Mohamed%20Mohamed%20Ahmed%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(77)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_78">
+      <td>79</td>
+      <td>Julia Toufic Jawhar</td>
+      <td><input type="checkbox" id="checkbox_78" name="sent_78" /></td>
+      <td><a href="https://wa.me/201016597900?text=Can%20i%20know%20why%20Julia%20Toufic%20Jawhar%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(78)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_79">
+      <td>80</td>
+      <td>Jana mohamed radwan</td>
+      <td><input type="checkbox" id="checkbox_79" name="sent_79" /></td>
+      <td><a href="https://wa.me/201012984613?text=Can%20i%20know%20why%20Jana%20mohamed%20radwan%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(79)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_80">
+      <td>81</td>
+      <td>Yasmine waleed mohamed</td>
+      <td><input type="checkbox" id="checkbox_80" name="sent_80" /></td>
+      <td><a href="https://wa.me/201224658611?text=Can%20i%20know%20why%20Yasmine%20waleed%20mohamed%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(80)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_81">
+      <td>82</td>
+      <td>Kenzy Mohamed kamal</td>
+      <td><input type="checkbox" id="checkbox_81" name="sent_81" /></td>
+      <td><a href="https://wa.me/201287579795?text=Can%20i%20know%20why%20Kenzy%20Mohamed%20kamal%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(81)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_82">
+      <td>83</td>
+      <td>Joyce yousef</td>
+      <td><input type="checkbox" id="checkbox_82" name="sent_82" /></td>
+      <td><a href="https://wa.me/201223655134?text=Can%20i%20know%20why%20Joyce%20yousef%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(82)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_83">
+      <td>84</td>
+      <td>LAMIS MOHAMED</td>
+      <td><input type="checkbox" id="checkbox_83" name="sent_83" /></td>
+      <td><a href="https://wa.me/201009091973?text=Can%20i%20know%20why%20LAMIS%20MOHAMED%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(83)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_84">
+      <td>85</td>
+      <td>Mohamed gaber abdellrady ahmed</td>
+      <td><input type="checkbox" id="checkbox_84" name="sent_84" /></td>
+      <td><a href="https://wa.me/201204439660?text=Can%20i%20know%20why%20Mohamed%20gaber%20abdellrady%20ahmed%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(84)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_85">
+      <td>86</td>
+      <td>Mostafa Hytham ashour Ahmed</td>
+      <td><input type="checkbox" id="checkbox_85" name="sent_85" /></td>
+      <td><a href="https://wa.me/201091649244?text=Can%20i%20know%20why%20Mostafa%20Hytham%20ashour%20Ahmed%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(85)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_86">
+      <td>87</td>
+      <td>Shahd mohammed zaher jamal</td>
+      <td><input type="checkbox" id="checkbox_86" name="sent_86" /></td>
+      <td><a href="https://wa.me/201091910811?text=Can%20i%20know%20why%20Shahd%20mohammed%20zaher%20jamal%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(86)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_87">
+      <td>88</td>
+      <td>JanaElsarag</td>
+      <td><input type="checkbox" id="checkbox_87" name="sent_87" /></td>
+      <td><a href="https://wa.me/201005665779?text=Can%20i%20know%20why%20JanaElsarag%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(87)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_88">
+      <td>89</td>
+      <td>روان</td>
+      <td><input type="checkbox" id="checkbox_88" name="sent_88" /></td>
+      <td><a href="https://wa.me/201068001825?text=Can%20i%20know%20why%20%D8%B1%D9%88%D8%A7%D9%86%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(88)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_89">
+      <td>90</td>
+      <td>EyadAmin</td>
+      <td><input type="checkbox" id="checkbox_89" name="sent_89" /></td>
+      <td><a href="https://wa.me/201208666528?text=Can%20i%20know%20why%20EyadAmin%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(89)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_90">
+      <td>91</td>
+      <td>Lara Sherif</td>
+      <td><input type="checkbox" id="checkbox_90" name="sent_90" /></td>
+      <td><a href="https://wa.me/201007178633?text=Can%20i%20know%20why%20Lara%20Sherif%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(90)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_91">
+      <td>92</td>
+      <td>Yassin hossam eldeen Mohamed</td>
+      <td><input type="checkbox" id="checkbox_91" name="sent_91" /></td>
+      <td><a href="https://wa.me/201111666311?text=Can%20i%20know%20why%20Yassin%20hossam%20eldeen%20Mohamed%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(91)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_92">
+      <td>93</td>
+      <td>Sara Ayman</td>
+      <td><input type="checkbox" id="checkbox_92" name="sent_92" /></td>
+      <td><a href="https://wa.me/201205294433?text=Can%20i%20know%20why%20Sara%20Ayman%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(92)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_93">
+      <td>94</td>
+      <td>Christina Ashamalla</td>
+      <td><input type="checkbox" id="checkbox_93" name="sent_93" /></td>
+      <td><a href="https://wa.me/Wrong Number?text=Can%20i%20know%20why%20Christina%20Ashamalla%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(93)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_94">
+      <td>95</td>
+      <td>Mark samaan Zakaria naseef</td>
+      <td><input type="checkbox" id="checkbox_94" name="sent_94" /></td>
+      <td><a href="https://wa.me/201201255118?text=Can%20i%20know%20why%20Mark%20samaan%20Zakaria%20naseef%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(94)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_95">
+      <td>96</td>
+      <td>Mutasim bellah osama</td>
+      <td><input type="checkbox" id="checkbox_95" name="sent_95" /></td>
+      <td><a href="https://wa.me/201117049906?text=Can%20i%20know%20why%20Mutasim%20bellah%20osama%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(95)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_96">
+      <td>97</td>
+      <td>Nada mohamed abdel hameed</td>
+      <td><input type="checkbox" id="checkbox_96" name="sent_96" /></td>
+      <td><a href="https://wa.me/201153530094?text=Can%20i%20know%20why%20Nada%20mohamed%20abdel%20hameed%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(96)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_97">
+      <td>98</td>
+      <td>Johny Onsi Naseef Anas</td>
+      <td><input type="checkbox" id="checkbox_97" name="sent_97" /></td>
+      <td><a href="https://wa.me/201005010860?text=Can%20i%20know%20why%20Johny%20Onsi%20Naseef%20Anas%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(97)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_98">
+      <td>99</td>
+      <td>محمد ايمن ابراهيم حسين</td>
+      <td><input type="checkbox" id="checkbox_98" name="sent_98" /></td>
+      <td><a href="https://wa.me/201146515247?text=Can%20i%20know%20why%20%D9%85%D8%AD%D9%85%D8%AF%20%D8%A7%D9%8A%D9%85%D9%86%20%D8%A7%D8%A8%D8%B1%D8%A7%D9%87%D9%8A%D9%85%20%D8%AD%D8%B3%D9%8A%D9%86%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(98)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_99">
+      <td>100</td>
+      <td>Ahmed Waleed Ahmed Redwan</td>
+      <td><input type="checkbox" id="checkbox_99" name="sent_99" /></td>
+      <td><a href="https://wa.me/201068835188?text=Can%20i%20know%20why%20Ahmed%20Waleed%20Ahmed%20Redwan%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(99)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_100">
+      <td>101</td>
+      <td>Steven Hany</td>
+      <td><input type="checkbox" id="checkbox_100" name="sent_100" /></td>
+      <td><a href="https://wa.me/201225185056?text=Can%20i%20know%20why%20Steven%20Hany%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(100)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_101">
+      <td>102</td>
+      <td>Basmaarfat</td>
+      <td><input type="checkbox" id="checkbox_101" name="sent_101" /></td>
+      <td><a href="https://wa.me/201063292361?text=Can%20i%20know%20why%20Basmaarfat%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(101)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_102">
+      <td>103</td>
+      <td>Mariam Ahmed Mohamed</td>
+      <td><input type="checkbox" id="checkbox_102" name="sent_102" /></td>
+      <td><a href="https://wa.me/201005508310?text=Can%20i%20know%20why%20Mariam%20Ahmed%20Mohamed%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(102)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_103">
+      <td>104</td>
+      <td>Hamza mohamed mostafa</td>
+      <td><input type="checkbox" id="checkbox_103" name="sent_103" /></td>
+      <td><a href="https://wa.me/201003681976?text=Can%20i%20know%20why%20Hamza%20mohamed%20mostafa%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(103)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_104">
+      <td>105</td>
+      <td>Moaz Ahmed Ibrahim</td>
+      <td><input type="checkbox" id="checkbox_104" name="sent_104" /></td>
+      <td><a href="https://wa.me/201001488156?text=Can%20i%20know%20why%20Moaz%20Ahmed%20Ibrahim%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(104)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_105">
+      <td>106</td>
+      <td>Mariem Mohamed Abdelwaged</td>
+      <td><input type="checkbox" id="checkbox_105" name="sent_105" /></td>
+      <td><a href="https://wa.me/201009243100?text=Can%20i%20know%20why%20Mariem%20Mohamed%20Abdelwaged%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(105)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_106">
+      <td>107</td>
+      <td>ديفيد جورج فاروق سعيد</td>
+      <td><input type="checkbox" id="checkbox_106" name="sent_106" /></td>
+      <td><a href="https://wa.me/201285066274?text=Can%20i%20know%20why%20%D8%AF%D9%8A%D9%81%D9%8A%D8%AF%20%D8%AC%D9%88%D8%B1%D8%AC%20%D9%81%D8%A7%D8%B1%D9%88%D9%82%20%D8%B3%D8%B9%D9%8A%D8%AF%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(106)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_107">
+      <td>108</td>
+      <td>Haya mahmoud</td>
+      <td><input type="checkbox" id="checkbox_107" name="sent_107" /></td>
+      <td><a href="https://wa.me/201064440116?text=Can%20i%20know%20why%20Haya%20mahmoud%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(107)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_108">
+      <td>109</td>
+      <td>Jolina</td>
+      <td><input type="checkbox" id="checkbox_108" name="sent_108" /></td>
+      <td><a href="https://wa.me/201211876305?text=Can%20i%20know%20why%20Jolina%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(108)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_109">
+      <td>110</td>
+      <td>Ali Gehad Ali</td>
+      <td><input type="checkbox" id="checkbox_109" name="sent_109" /></td>
+      <td><a href="https://wa.me/201015500438?text=Can%20i%20know%20why%20Ali%20Gehad%20Ali%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(109)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_110">
+      <td>111</td>
+      <td>Loji Elsissy</td>
+      <td><input type="checkbox" id="checkbox_110" name="sent_110" /></td>
+      <td><a href="https://wa.me/201007470150?text=Can%20i%20know%20why%20Loji%20Elsissy%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(110)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_111">
+      <td>112</td>
+      <td>Mohamed Hussein Yousef Abo Al Haggag</td>
+      <td><input type="checkbox" id="checkbox_111" name="sent_111" /></td>
+      <td><a href="https://wa.me/201156850955?text=Can%20i%20know%20why%20Mohamed%20Hussein%20Yousef%20Abo%20Al%20Haggag%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(111)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_112">
+      <td>113</td>
+      <td>Abdelrahman mohamed hamed</td>
+      <td><input type="checkbox" id="checkbox_112" name="sent_112" /></td>
+      <td><a href="https://wa.me/201021787179?text=Can%20i%20know%20why%20Abdelrahman%20mohamed%20hamed%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(112)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_113">
+      <td>114</td>
+      <td>Gorge osama</td>
+      <td><input type="checkbox" id="checkbox_113" name="sent_113" /></td>
+      <td><a href="https://wa.me/201200091864?text=Can%20i%20know%20why%20Gorge%20osama%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(113)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_114">
+      <td>115</td>
+      <td>Ebram antonious Samir</td>
+      <td><input type="checkbox" id="checkbox_114" name="sent_114" /></td>
+      <td><a href="https://wa.me/201273205554?text=Can%20i%20know%20why%20Ebram%20antonious%20Samir%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(114)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_115">
+      <td>116</td>
+      <td>Youssef Medhat Botros</td>
+      <td><input type="checkbox" id="checkbox_115" name="sent_115" /></td>
+      <td><a href="https://wa.me/201222754743?text=Can%20i%20know%20why%20Youssef%20Medhat%20Botros%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(115)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_116">
+      <td>117</td>
+      <td>mina ashraf saad botros</td>
+      <td><input type="checkbox" id="checkbox_116" name="sent_116" /></td>
+      <td><a href="https://wa.me/201220779165?text=Can%20i%20know%20why%20mina%20ashraf%20saad%20botros%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(116)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_117">
+      <td>118</td>
+      <td>Hana Mansour Assaf</td>
+      <td><input type="checkbox" id="checkbox_117" name="sent_117" /></td>
+      <td><a href="https://wa.me/201126060555?text=Can%20i%20know%20why%20Hana%20Mansour%20Assaf%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(117)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_118">
+      <td>119</td>
+      <td>Jomana sameh ezzat</td>
+      <td><input type="checkbox" id="checkbox_118" name="sent_118" /></td>
+      <td><a href="https://wa.me/201283419991?text=Can%20i%20know%20why%20Jomana%20sameh%20ezzat%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(118)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_119">
+      <td>120</td>
+      <td>Yousef Waleed Mohamed</td>
+      <td><input type="checkbox" id="checkbox_119" name="sent_119" /></td>
+      <td><a href="https://wa.me/201001644414?text=Can%20i%20know%20why%20Yousef%20Waleed%20Mohamed%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(119)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_120">
+      <td>121</td>
+      <td>Ereeny Amged Aboelsoud</td>
+      <td><input type="checkbox" id="checkbox_120" name="sent_120" /></td>
+      <td><a href="https://wa.me/201278166657?text=Can%20i%20know%20why%20Ereeny%20Amged%20Aboelsoud%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(120)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_121">
+      <td>122</td>
+      <td>passant ayman salah</td>
+      <td><input type="checkbox" id="checkbox_121" name="sent_121" /></td>
+      <td><a href="https://wa.me/201280722230?text=Can%20i%20know%20why%20passant%20ayman%20salah%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(121)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_122">
+      <td>123</td>
+      <td>Arwa reda alsaid abdelhalim alsharqawy</td>
+      <td><input type="checkbox" id="checkbox_122" name="sent_122" /></td>
+      <td><a href="https://wa.me/201123206840?text=Can%20i%20know%20why%20Arwa%20reda%20alsaid%20abdelhalim%20alsharqawy%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(122)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_123">
+      <td>124</td>
+      <td>علي سيد عبد الحق</td>
+      <td><input type="checkbox" id="checkbox_123" name="sent_123" /></td>
+      <td><a href="https://wa.me/201011333893?text=Can%20i%20know%20why%20%D8%B9%D9%84%D9%8A%20%D8%B3%D9%8A%D8%AF%20%D8%B9%D8%A8%D8%AF%20%D8%A7%D9%84%D8%AD%D9%82%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(123)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_124">
+      <td>125</td>
+      <td>Mariam Khaled Tohamy</td>
+      <td><input type="checkbox" id="checkbox_124" name="sent_124" /></td>
+      <td><a href="https://wa.me/201278854926?text=Can%20i%20know%20why%20Mariam%20Khaled%20Tohamy%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(124)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_125">
+      <td>126</td>
+      <td>Habiba mohamed amer</td>
+      <td><input type="checkbox" id="checkbox_125" name="sent_125" /></td>
+      <td><a href="https://wa.me/201061827205?text=Can%20i%20know%20why%20Habiba%20mohamed%20amer%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(125)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_126">
+      <td>127</td>
+      <td>روان احمد محمد سيد يوسف</td>
+      <td><input type="checkbox" id="checkbox_126" name="sent_126" /></td>
+      <td><a href="https://wa.me/201069500672?text=Can%20i%20know%20why%20%D8%B1%D9%88%D8%A7%D9%86%20%D8%A7%D8%AD%D9%85%D8%AF%20%D9%85%D8%AD%D9%85%D8%AF%20%D8%B3%D9%8A%D8%AF%20%D9%8A%D9%88%D8%B3%D9%81%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(126)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_127">
+      <td>128</td>
+      <td>Zenab ahmed Mahmoud abdelhafez</td>
+      <td><input type="checkbox" id="checkbox_127" name="sent_127" /></td>
+      <td><a href="https://wa.me/201067501681?text=Can%20i%20know%20why%20Zenab%20ahmed%20Mahmoud%20abdelhafez%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(127)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_128">
+      <td>129</td>
+      <td>Nijar Kamal</td>
+      <td><input type="checkbox" id="checkbox_128" name="sent_128" /></td>
+      <td><a href="https://wa.me/201026526226?text=Can%20i%20know%20why%20Nijar%20Kamal%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(128)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_129">
+      <td>130</td>
+      <td>Raed Mosaed Nabil</td>
+      <td><input type="checkbox" id="checkbox_129" name="sent_129" /></td>
+      <td><a href="https://wa.me/201023084044?text=Can%20i%20know%20why%20Raed%20Mosaed%20Nabil%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(129)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_130">
+      <td>131</td>
+      <td>abdallah hazem nabil shakwy yassen nassar</td>
+      <td><input type="checkbox" id="checkbox_130" name="sent_130" /></td>
+      <td><a href="https://wa.me/201000538113?text=Can%20i%20know%20why%20abdallah%20hazem%20nabil%20shakwy%20yassen%20nassar%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(130)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_131">
+      <td>132</td>
+      <td>Salma wael</td>
+      <td><input type="checkbox" id="checkbox_131" name="sent_131" /></td>
+      <td><a href="https://wa.me/201010766797?text=Can%20i%20know%20why%20Salma%20wael%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(131)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_132">
+      <td>133</td>
+      <td>Mariam Saeed Shoiab</td>
+      <td><input type="checkbox" id="checkbox_132" name="sent_132" /></td>
+      <td><a href="https://wa.me/201128448517?text=Can%20i%20know%20why%20Mariam%20Saeed%20Shoiab%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(132)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_133">
+      <td>134</td>
+      <td>George Wael Gamal</td>
+      <td><input type="checkbox" id="checkbox_133" name="sent_133" /></td>
+      <td><a href="https://wa.me/201224913316?text=Can%20i%20know%20why%20George%20Wael%20Gamal%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(133)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_134">
+      <td>135</td>
+      <td>Mariam Zakaria mohy eldeen</td>
+      <td><input type="checkbox" id="checkbox_134" name="sent_134" /></td>
+      <td><a href="https://wa.me/201117119051?text=Can%20i%20know%20why%20Mariam%20Zakaria%20mohy%20eldeen%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(134)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_135">
+      <td>136</td>
+      <td>ملك محمد صبره محمد</td>
+      <td><input type="checkbox" id="checkbox_135" name="sent_135" /></td>
+      <td><a href="https://wa.me/201123136711?text=Can%20i%20know%20why%20%D9%85%D9%84%D9%83%20%D9%85%D8%AD%D9%85%D8%AF%20%D8%B5%D8%A8%D8%B1%D9%87%20%D9%85%D8%AD%D9%85%D8%AF%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(135)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_136">
+      <td>137</td>
+      <td>Makarious Ekramy Ayad</td>
+      <td><input type="checkbox" id="checkbox_136" name="sent_136" /></td>
+      <td><a href="https://wa.me/201206443003?text=Can%20i%20know%20why%20Makarious%20Ekramy%20Ayad%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(136)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_137">
+      <td>138</td>
+      <td>Michael Ragai Sobhi</td>
+      <td><input type="checkbox" id="checkbox_137" name="sent_137" /></td>
+      <td><a href="https://wa.me/201282455525?text=Can%20i%20know%20why%20Michael%20Ragai%20Sobhi%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(137)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_138">
+      <td>139</td>
+      <td>Jessy ibrahim Sadek</td>
+      <td><input type="checkbox" id="checkbox_138" name="sent_138" /></td>
+      <td><a href="https://wa.me/201283128392?text=Can%20i%20know%20why%20Jessy%20ibrahim%20Sadek%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(138)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_139">
+      <td>140</td>
+      <td>مكاريوس اكرامى عياد</td>
+      <td><input type="checkbox" id="checkbox_139" name="sent_139" /></td>
+      <td><a href="https://wa.me/201206443003?text=Can%20i%20know%20why%20%D9%85%D9%83%D8%A7%D8%B1%D9%8A%D9%88%D8%B3%20%D8%A7%D9%83%D8%B1%D8%A7%D9%85%D9%89%20%D8%B9%D9%8A%D8%A7%D8%AF%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(139)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_140">
+      <td>141</td>
+      <td>Salma mohamed abo elkassem</td>
+      <td><input type="checkbox" id="checkbox_140" name="sent_140" /></td>
+      <td><a href="https://wa.me/201006071963?text=Can%20i%20know%20why%20Salma%20mohamed%20abo%20elkassem%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(140)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_141">
+      <td>142</td>
+      <td>Jana wael arafa</td>
+      <td><input type="checkbox" id="checkbox_141" name="sent_141" /></td>
+      <td><a href="https://wa.me/201016780876?text=Can%20i%20know%20why%20Jana%20wael%20arafa%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(141)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_142">
+      <td>143</td>
+      <td>Youssef Tamer Nabil</td>
+      <td><input type="checkbox" id="checkbox_142" name="sent_142" /></td>
+      <td><a href="https://wa.me/201283494342?text=Can%20i%20know%20why%20Youssef%20Tamer%20Nabil%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(142)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_143">
+      <td>144</td>
+      <td>Yassen Yousuf</td>
+      <td><input type="checkbox" id="checkbox_143" name="sent_143" /></td>
+      <td><a href="https://wa.me/201061055151?text=Can%20i%20know%20why%20Yassen%20Yousuf%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(143)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_144">
+      <td>145</td>
+      <td>رنا رضا نجيب</td>
+      <td><input type="checkbox" id="checkbox_144" name="sent_144" /></td>
+      <td><a href="https://wa.me/201144700971?text=Can%20i%20know%20why%20%D8%B1%D9%86%D8%A7%20%D8%B1%D8%B6%D8%A7%20%D9%86%D8%AC%D9%8A%D8%A8%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(144)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_145">
+      <td>146</td>
+      <td>Ahmed Mohamed Soliman</td>
+      <td><input type="checkbox" id="checkbox_145" name="sent_145" /></td>
+      <td><a href="https://wa.me/201118188500?text=Can%20i%20know%20why%20Ahmed%20Mohamed%20Soliman%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(145)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_146">
+      <td>147</td>
+      <td>Anthony sherif raid</td>
+      <td><input type="checkbox" id="checkbox_146" name="sent_146" /></td>
+      <td><a href="https://wa.me/201224282752?text=Can%20i%20know%20why%20Anthony%20sherif%20raid%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(146)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_147">
+      <td>148</td>
+      <td>Mariem Osama taha</td>
+      <td><input type="checkbox" id="checkbox_147" name="sent_147" /></td>
+      <td><a href="https://wa.me/201000642705?text=Can%20i%20know%20why%20Mariem%20Osama%20taha%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(147)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_148">
+      <td>149</td>
+      <td>marly bassem</td>
+      <td><input type="checkbox" id="checkbox_148" name="sent_148" /></td>
+      <td><a href="https://wa.me/201287337874?text=Can%20i%20know%20why%20marly%20bassem%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(148)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_149">
+      <td>150</td>
+      <td>Retag Ahmed Abdelatty</td>
+      <td><input type="checkbox" id="checkbox_149" name="sent_149" /></td>
+      <td><a href="https://wa.me/201009002142?text=Can%20i%20know%20why%20Retag%20Ahmed%20Abdelatty%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(149)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_150">
+      <td>151</td>
+      <td>Kanzy rizk</td>
+      <td><input type="checkbox" id="checkbox_150" name="sent_150" /></td>
+      <td><a href="https://wa.me/201027987664?text=Can%20i%20know%20why%20Kanzy%20rizk%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(150)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_151">
+      <td>152</td>
+      <td>Mariam</td>
+      <td><input type="checkbox" id="checkbox_151" name="sent_151" /></td>
+      <td><a href="https://wa.me/201203146096?text=Can%20i%20know%20why%20Mariam%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(151)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_152">
+      <td>153</td>
+      <td>Mariam Essam Abdelkader</td>
+      <td><input type="checkbox" id="checkbox_152" name="sent_152" /></td>
+      <td><a href="https://wa.me/201022076817?text=Can%20i%20know%20why%20Mariam%20Essam%20Abdelkader%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(152)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_153">
+      <td>154</td>
+      <td>John Emad</td>
+      <td><input type="checkbox" id="checkbox_153" name="sent_153" /></td>
+      <td><a href="https://wa.me/201116916935?text=Can%20i%20know%20why%20John%20Emad%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(153)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_154">
+      <td>155</td>
+      <td>Mohamed Magdy Ali</td>
+      <td><input type="checkbox" id="checkbox_154" name="sent_154" /></td>
+      <td><a href="https://wa.me/201208800226?text=Can%20i%20know%20why%20Mohamed%20Magdy%20Ali%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(154)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_155">
+      <td>156</td>
+      <td>Beshoy shehata</td>
+      <td><input type="checkbox" id="checkbox_155" name="sent_155" /></td>
+      <td><a href="https://wa.me/201110077330?text=Can%20i%20know%20why%20Beshoy%20shehata%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(155)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_156">
+      <td>157</td>
+      <td>Noreen hesham</td>
+      <td><input type="checkbox" id="checkbox_156" name="sent_156" /></td>
+      <td><a href="https://wa.me/201040829190?text=Can%20i%20know%20why%20Noreen%20hesham%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(156)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_157">
+      <td>158</td>
+      <td>ahmedhamada</td>
+      <td><input type="checkbox" id="checkbox_157" name="sent_157" /></td>
+      <td><a href="https://wa.me/201147822120?text=Can%20i%20know%20why%20ahmedhamada%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(157)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_158">
+      <td>159</td>
+      <td>Ayten ahmed hassan Elsherif</td>
+      <td><input type="checkbox" id="checkbox_158" name="sent_158" /></td>
+      <td><a href="https://wa.me/201080150750?text=Can%20i%20know%20why%20Ayten%20ahmed%20hassan%20Elsherif%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(158)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_159">
+      <td>160</td>
+      <td>ريتاج محمد والي</td>
+      <td><input type="checkbox" id="checkbox_159" name="sent_159" /></td>
+      <td><a href="https://wa.me/201117106998?text=Can%20i%20know%20why%20%D8%B1%D9%8A%D8%AA%D8%A7%D8%AC%20%D9%85%D8%AD%D9%85%D8%AF%20%D9%88%D8%A7%D9%84%D9%8A%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(159)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_160">
+      <td>161</td>
+      <td>Malak mohamed abdelhamed</td>
+      <td><input type="checkbox" id="checkbox_160" name="sent_160" /></td>
+      <td><a href="https://wa.me/201050988449?text=Can%20i%20know%20why%20Malak%20mohamed%20abdelhamed%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(160)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_161">
+      <td>162</td>
+      <td>halahazem</td>
+      <td><input type="checkbox" id="checkbox_161" name="sent_161" /></td>
+      <td><a href="https://wa.me/201099834422?text=Can%20i%20know%20why%20halahazem%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(161)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_162">
+      <td>163</td>
+      <td>Rebekah Medhat Milad</td>
+      <td><input type="checkbox" id="checkbox_162" name="sent_162" /></td>
+      <td><a href="https://wa.me/201227909934?text=Can%20i%20know%20why%20Rebekah%20Medhat%20Milad%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(162)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_163">
+      <td>164</td>
+      <td>Malak ismail Abdullah</td>
+      <td><input type="checkbox" id="checkbox_163" name="sent_163" /></td>
+      <td><a href="https://wa.me/201224146811?text=Can%20i%20know%20why%20Malak%20ismail%20Abdullah%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(163)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_164">
+      <td>165</td>
+      <td>Arwa Mohamed Salah</td>
+      <td><input type="checkbox" id="checkbox_164" name="sent_164" /></td>
+      <td><a href="https://wa.me/201124422972?text=Can%20i%20know%20why%20Arwa%20Mohamed%20Salah%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(164)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_165">
+      <td>166</td>
+      <td>Aya khalid badr</td>
+      <td><input type="checkbox" id="checkbox_165" name="sent_165" /></td>
+      <td><a href="https://wa.me/201094623997?text=Can%20i%20know%20why%20Aya%20khalid%20badr%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(165)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_166">
+      <td>167</td>
+      <td>hana ahmed fattoh ali</td>
+      <td><input type="checkbox" id="checkbox_166" name="sent_166" /></td>
+      <td><a href="https://wa.me/201063271514?text=Can%20i%20know%20why%20hana%20ahmed%20fattoh%20ali%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(166)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_167">
+      <td>168</td>
+      <td>Eyad Ahmed Khairy</td>
+      <td><input type="checkbox" id="checkbox_167" name="sent_167" /></td>
+      <td><a href="https://wa.me/201227607969?text=Can%20i%20know%20why%20Eyad%20Ahmed%20Khairy%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(167)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_168">
+      <td>169</td>
+      <td>Engy hanna</td>
+      <td><input type="checkbox" id="checkbox_168" name="sent_168" /></td>
+      <td><a href="https://wa.me/201223566064?text=Can%20i%20know%20why%20Engy%20hanna%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(168)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_169">
+      <td>170</td>
+      <td>AlzahraaMahmoudAhmed</td>
+      <td><input type="checkbox" id="checkbox_169" name="sent_169" /></td>
+      <td><a href="https://wa.me/201114072782?text=Can%20i%20know%20why%20AlzahraaMahmoudAhmed%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(169)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_170">
+      <td>171</td>
+      <td>Youanna Boules Yacoub</td>
+      <td><input type="checkbox" id="checkbox_170" name="sent_170" /></td>
+      <td><a href="https://wa.me/201228194216?text=Can%20i%20know%20why%20Youanna%20Boules%20Yacoub%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(170)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_171">
+      <td>172</td>
+      <td>Bassant0mar</td>
+      <td><input type="checkbox" id="checkbox_171" name="sent_171" /></td>
+      <td><a href="https://wa.me/201022855346?text=Can%20i%20know%20why%20Bassant0mar%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(171)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_172">
+      <td>173</td>
+      <td>Hana ibrahim lotfey</td>
+      <td><input type="checkbox" id="checkbox_172" name="sent_172" /></td>
+      <td><a href="https://wa.me/201287146768?text=Can%20i%20know%20why%20Hana%20ibrahim%20lotfey%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(172)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_173">
+      <td>174</td>
+      <td>Youstina monsef moneer</td>
+      <td><input type="checkbox" id="checkbox_173" name="sent_173" /></td>
+      <td><a href="https://wa.me/Wrong Number?text=Can%20i%20know%20why%20Youstina%20monsef%20moneer%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(173)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_174">
+      <td>175</td>
+      <td>George Magdy Mina</td>
+      <td><input type="checkbox" id="checkbox_174" name="sent_174" /></td>
+      <td><a href="https://wa.me/201024100962?text=Can%20i%20know%20why%20George%20Magdy%20Mina%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(174)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_175">
+      <td>176</td>
+      <td>Mohamed ahmed hassan Elsherif</td>
+      <td><input type="checkbox" id="checkbox_175" name="sent_175" /></td>
+      <td><a href="https://wa.me/201080150750?text=Can%20i%20know%20why%20Mohamed%20ahmed%20hassan%20Elsherif%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(175)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_176">
+      <td>177</td>
+      <td>Mariam mahmoud</td>
+      <td><input type="checkbox" id="checkbox_176" name="sent_176" /></td>
+      <td><a href="https://wa.me/966566541632?text=Can%20i%20know%20why%20Mariam%20mahmoud%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(176)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_177">
+      <td>178</td>
+      <td>بيشوى ايمن سيف المسيح مجلع</td>
+      <td><input type="checkbox" id="checkbox_177" name="sent_177" /></td>
+      <td><a href="https://wa.me/201009160696?text=Can%20i%20know%20why%20%D8%A8%D9%8A%D8%B4%D9%88%D9%89%20%D8%A7%D9%8A%D9%85%D9%86%20%D8%B3%D9%8A%D9%81%20%D8%A7%D9%84%D9%85%D8%B3%D9%8A%D8%AD%20%D9%85%D8%AC%D9%84%D8%B9%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(177)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_178">
+      <td>179</td>
+      <td>Mennatullah Talaat Abdelfattah Ibrahim Elghadar</td>
+      <td><input type="checkbox" id="checkbox_178" name="sent_178" /></td>
+      <td><a href="https://wa.me/201030974000?text=Can%20i%20know%20why%20Mennatullah%20Talaat%20Abdelfattah%20Ibrahim%20Elghadar%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(178)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_179">
+      <td>180</td>
+      <td>Hala Ehab</td>
+      <td><input type="checkbox" id="checkbox_179" name="sent_179" /></td>
+      <td><a href="https://wa.me/201066314991?text=Can%20i%20know%20why%20Hala%20Ehab%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(179)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_180">
+      <td>181</td>
+      <td>Marwa Esmail</td>
+      <td><input type="checkbox" id="checkbox_180" name="sent_180" /></td>
+      <td><a href="https://wa.me/201009499303?text=Can%20i%20know%20why%20Marwa%20Esmail%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(180)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_181">
+      <td>182</td>
+      <td>omar Essa omar</td>
+      <td><input type="checkbox" id="checkbox_181" name="sent_181" /></td>
+      <td><a href="https://wa.me/201159153671?text=Can%20i%20know%20why%20omar%20Essa%20omar%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(181)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_182">
+      <td>183</td>
+      <td>Malak Sayed Gouda Ibrahim</td>
+      <td><input type="checkbox" id="checkbox_182" name="sent_182" /></td>
+      <td><a href="https://wa.me/201228333123?text=Can%20i%20know%20why%20Malak%20Sayed%20Gouda%20Ibrahim%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(182)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_183">
+      <td>184</td>
+      <td>Yousef Asaad</td>
+      <td><input type="checkbox" id="checkbox_183" name="sent_183" /></td>
+      <td><a href="https://wa.me/201277831214?text=Can%20i%20know%20why%20Yousef%20Asaad%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(183)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_184">
+      <td>185</td>
+      <td>Mariam Ghozil</td>
+      <td><input type="checkbox" id="checkbox_184" name="sent_184" /></td>
+      <td><a href="https://wa.me/201028855382?text=Can%20i%20know%20why%20Mariam%20Ghozil%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(184)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_185">
+      <td>186</td>
+      <td>Hana tarek</td>
+      <td><input type="checkbox" id="checkbox_185" name="sent_185" /></td>
+      <td><a href="https://wa.me/201223803293?text=Can%20i%20know%20why%20Hana%20tarek%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(185)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_186">
+      <td>187</td>
+      <td>Yassen Amar ahmed ali</td>
+      <td><input type="checkbox" id="checkbox_186" name="sent_186" /></td>
+      <td><a href="https://wa.me/201274102727?text=Can%20i%20know%20why%20Yassen%20Amar%20ahmed%20ali%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(186)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_187">
+      <td>188</td>
+      <td>Yostina Elaisha Elia</td>
+      <td><input type="checkbox" id="checkbox_187" name="sent_187" /></td>
+      <td><a href="https://wa.me/201286437100?text=Can%20i%20know%20why%20Yostina%20Elaisha%20Elia%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(187)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_188">
+      <td>189</td>
+      <td>Mariam Mahmoud ezz</td>
+      <td><input type="checkbox" id="checkbox_188" name="sent_188" /></td>
+      <td><a href="https://wa.me/201000292003?text=Can%20i%20know%20why%20Mariam%20Mahmoud%20ezz%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(188)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_189">
+      <td>190</td>
+      <td>Fady Sherif Samir</td>
+      <td><input type="checkbox" id="checkbox_189" name="sent_189" /></td>
+      <td><a href="https://wa.me/201221522224?text=Can%20i%20know%20why%20Fady%20Sherif%20Samir%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(189)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_190">
+      <td>191</td>
+      <td>Habiba hany shaker</td>
+      <td><input type="checkbox" id="checkbox_190" name="sent_190" /></td>
+      <td><a href="https://wa.me/201004520473?text=Can%20i%20know%20why%20Habiba%20hany%20shaker%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(190)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_191">
+      <td>192</td>
+      <td>abdelrahman atef elliyat</td>
+      <td><input type="checkbox" id="checkbox_191" name="sent_191" /></td>
+      <td><a href="https://wa.me/966569888801?text=Can%20i%20know%20why%20abdelrahman%20atef%20elliyat%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(191)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_192">
+      <td>193</td>
+      <td>malaq tarek yusif mostafa</td>
+      <td><input type="checkbox" id="checkbox_192" name="sent_192" /></td>
+      <td><a href="https://wa.me/201015125972?text=Can%20i%20know%20why%20malaq%20tarek%20yusif%20mostafa%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(192)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_193">
+      <td>194</td>
+      <td>Mokhtar ahmed mokhtar</td>
+      <td><input type="checkbox" id="checkbox_193" name="sent_193" /></td>
+      <td><a href="https://wa.me/201005772745?text=Can%20i%20know%20why%20Mokhtar%20ahmed%20mokhtar%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(193)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_194">
+      <td>195</td>
+      <td>Basmala hamdy gomaa</td>
+      <td><input type="checkbox" id="checkbox_194" name="sent_194" /></td>
+      <td><a href="https://wa.me/201034744734?text=Can%20i%20know%20why%20Basmala%20hamdy%20gomaa%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(194)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_195">
+      <td>196</td>
+      <td>Mohraeel osama william</td>
+      <td><input type="checkbox" id="checkbox_195" name="sent_195" /></td>
+      <td><a href="https://wa.me/201201493969?text=Can%20i%20know%20why%20Mohraeel%20osama%20william%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(195)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_196">
+      <td>197</td>
+      <td>Abdelrahman mohamed salah</td>
+      <td><input type="checkbox" id="checkbox_196" name="sent_196" /></td>
+      <td><a href="https://wa.me/201010261404?text=Can%20i%20know%20why%20Abdelrahman%20mohamed%20salah%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(196)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_197">
+      <td>198</td>
+      <td>RAHAF Mohamed</td>
+      <td><input type="checkbox" id="checkbox_197" name="sent_197" /></td>
+      <td><a href="https://wa.me/201026101616?text=Can%20i%20know%20why%20RAHAF%20Mohamed%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(197)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_198">
+      <td>199</td>
+      <td>Tageldeen</td>
+      <td><input type="checkbox" id="checkbox_198" name="sent_198" /></td>
+      <td><a href="https://wa.me/201026238753?text=Can%20i%20know%20why%20Tageldeen%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(198)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_199">
+      <td>200</td>
+      <td>Mariam sherif el shazley</td>
+      <td><input type="checkbox" id="checkbox_199" name="sent_199" /></td>
+      <td><a href="https://wa.me/201099297690?text=Can%20i%20know%20why%20Mariam%20sherif%20el%20shazley%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(199)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_200">
+      <td>201</td>
+      <td>Meray Elkess Makary</td>
+      <td><input type="checkbox" id="checkbox_200" name="sent_200" /></td>
+      <td><a href="https://wa.me/201277334864?text=Can%20i%20know%20why%20Meray%20Elkess%20Makary%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(200)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_201">
+      <td>202</td>
+      <td>Mark younan boshar</td>
+      <td><input type="checkbox" id="checkbox_201" name="sent_201" /></td>
+      <td><a href="https://wa.me/201223312091?text=Can%20i%20know%20why%20Mark%20younan%20boshar%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(201)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_202">
+      <td>203</td>
+      <td>Zamzam Ahmed Mohamed Ahmed</td>
+      <td><input type="checkbox" id="checkbox_202" name="sent_202" /></td>
+      <td><a href="https://wa.me/201202502533?text=Can%20i%20know%20why%20Zamzam%20Ahmed%20Mohamed%20Ahmed%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(202)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_203">
+      <td>204</td>
+      <td>Dina Youssef</td>
+      <td><input type="checkbox" id="checkbox_203" name="sent_203" /></td>
+      <td><a href="https://wa.me/201096186800?text=Can%20i%20know%20why%20Dina%20Youssef%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(203)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_204">
+      <td>205</td>
+      <td>Halal metwlly zidan</td>
+      <td><input type="checkbox" id="checkbox_204" name="sent_204" /></td>
+      <td><a href="https://wa.me/201064002047?text=Can%20i%20know%20why%20Halal%20metwlly%20zidan%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(204)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_205">
+      <td>206</td>
+      <td>Nada Mohamed</td>
+      <td><input type="checkbox" id="checkbox_205" name="sent_205" /></td>
+      <td><a href="https://wa.me/201066669011?text=Can%20i%20know%20why%20Nada%20Mohamed%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(205)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_206">
+      <td>207</td>
+      <td>Marola emad dorgham</td>
+      <td><input type="checkbox" id="checkbox_206" name="sent_206" /></td>
+      <td><a href="https://wa.me/201211794467?text=Can%20i%20know%20why%20Marola%20emad%20dorgham%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(206)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_207">
+      <td>208</td>
+      <td>Jana abdelrahim</td>
+      <td><input type="checkbox" id="checkbox_207" name="sent_207" /></td>
+      <td><a href="https://wa.me/201273983004?text=Can%20i%20know%20why%20Jana%20abdelrahim%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(207)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_208">
+      <td>209</td>
+      <td>Joudy Ahmed abd elmotlab</td>
+      <td><input type="checkbox" id="checkbox_208" name="sent_208" /></td>
+      <td><a href="https://wa.me/201061234868?text=Can%20i%20know%20why%20Joudy%20Ahmed%20abd%20elmotlab%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(208)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_209">
+      <td>210</td>
+      <td>Zeinab Ahmed</td>
+      <td><input type="checkbox" id="checkbox_209" name="sent_209" /></td>
+      <td><a href="https://wa.me/201097961360?text=Can%20i%20know%20why%20Zeinab%20Ahmed%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(209)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_210">
+      <td>211</td>
+      <td>Lamees Ahmed bahy</td>
+      <td><input type="checkbox" id="checkbox_210" name="sent_210" /></td>
+      <td><a href="https://wa.me/201154401148?text=Can%20i%20know%20why%20Lamees%20Ahmed%20bahy%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(210)">Open Link</a></td>
+    </tr>
+  
+    <tr id="row_211">
+      <td>212</td>
+      <td>Betty Hany</td>
+      <td><input type="checkbox" id="checkbox_211" name="sent_211" /></td>
+      <td><a href="https://wa.me/201550166555?text=Can%20i%20know%20why%20Betty%20Hany%20is%20not%20in%20the%20session%20now%20%3F%3F" target="_blank" onclick="markAsSent(211)">Open Link</a></td>
+    </tr>
+  
+    </table>
+</div>
+
+<!-- ADDED AUTOMATION SCRIPT -->
+<script>
+    // --- Helper: Mark Checkbox ---
+    function markAsSent(index) {
+        var cb = document.getElementById('checkbox_' + index);
+        if(cb) cb.checked = true;
+    }
+
+    // --- Automation Logic ---
+    var timer = null;
+    var countdownTimer = null;
+    var nextIndex = 0;
+    
+    // 8 Seconds in milliseconds
+    var INTERVAL_SECONDS = 8;
+    var INTERVAL_MS = INTERVAL_SECONDS * 1000; 
+
+    function startAutoSend() {
+        if (timer) return; // Already running
+
+        // Find the first unchecked student to start from
+        nextIndex = -1;
+        var i = 0;
+        // Loop until we run out of rows
+        while(document.getElementById('row_' + i)) {
+            if(!document.getElementById('checkbox_' + i).checked) {
+                nextIndex = i;
+                break;
+            }
+            i++;
+        }
+
+        if (nextIndex === -1) {
+            document.getElementById('statusText').innerText = "Status: All links sent!";
+            return;
+        }
+
+        processNext();
+    }
+
+    function stopAutoSend() {
+        clearTimeout(timer);
+        clearInterval(countdownTimer);
+        timer = null;
+        countdownTimer = null;
+        document.getElementById('statusText').innerText = "Status: Stopped";
+        
+        // Remove active highlight
+        var rows = document.querySelectorAll('tr');
+        rows.forEach(function(tr) { tr.classList.remove('active-row'); });
+    }
+
+    function processNext() {
+        var row = document.getElementById('row_' + nextIndex);
+        if (!row) {
+            stopAutoSend();
+            document.getElementById('statusText').innerText = "Status: Completed!";
+            return;
+        }
+
+        // If user manually checked it while waiting, skip it
+        if (document.getElementById('checkbox_' + nextIndex).checked) {
+            nextIndex++;
+            processNext(); 
+            return;
+        }
+
+        // 1. Highlight Row
+        var allRows = document.querySelectorAll('tr');
+        allRows.forEach(function(tr) { tr.classList.remove('active-row'); });
+        
+        row.classList.add('active-row');
+        row.scrollIntoView({behavior: "smooth", block: "center"});
+
+        // 2. Open Link - Extract from anchor tag
+        var linkTag = row.querySelector('a');
+        if(linkTag) {
+            var win = window.open(linkTag.href, '_blank');
+            if (!win) {
+                 document.getElementById('statusText').innerHTML = "<span style='color:red'>Status: Popup Blocked! Please allow popups.</span>";
+                 stopAutoSend();
+                 return;
+            }
+        }
+
+        // 3. Mark Checked
+        markAsSent(nextIndex);
+
+        // 4. Set Timer for Next
+        nextIndex++;
+        startCountdown(INTERVAL_MS);
+        
+        // Schedule next execution
+        timer = setTimeout(processNext, INTERVAL_MS);
+    }
+
+    function startCountdown(duration) {
+        var remaining = duration;
+        var statusEl = document.getElementById('statusText');
+        
+        clearInterval(countdownTimer);
+        countdownTimer = setInterval(function() {
+            remaining -= 1000;
+            
+            if (remaining <= 0) {
+                clearInterval(countdownTimer);
+                statusEl.innerText = "Status: Opening next link...";
+                return;
+            }
+
+            var seconds = Math.ceil(remaining / 1000);
+            statusEl.innerHTML = 'Status: Next link in <span class="timer-count">' + seconds + 's</span>';
+        }, 1000);
+    }
+</script>
+</body>
+</html>
+        
