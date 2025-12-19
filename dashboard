@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Dashboard</title>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            /* Theme Colors based on your request */
+            --primary-color: #0F9E99;  /* Tropical Teal */
+            --primary-hover: #0b7a76;  /* Darker Teal for interaction */
+            --bg-color: #EFE9E0;       /* Soft Ivory */
+            --card-bg: #FFFFFF;        /* White */
+            --text-color: #333333;     /* Dark Gray */
+            --accent-green: #25D366;   /* WhatsApp Green Accent */
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .dashboard-card {
+            background-color: var(--card-bg);
+            padding: 40px 30px;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(15, 158, 153, 0.15); /* Soft teal shadow */
+            width: 100%;
+            max-width: 360px;
+            text-align: center;
+            border-top: 6px solid var(--primary-color);
+        }
+
+        h2 {
+            color: var(--primary-color);
+            margin-top: 0;
+            margin-bottom: 35px;
+            font-size: 26px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .action-btn {
+            display: flex;
+            align-items: center;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 16px 20px;
+            margin-bottom: 15px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: 600;
+            transition: all 0.2s ease-in-out;
+            border: 2px solid transparent;
+        }
+
+        /* Icon styling within button */
+        .action-btn i {
+            font-size: 20px;
+            width: 40px;
+            text-align: center;
+            border-right: 1px solid rgba(255,255,255,0.2);
+            margin-right: 15px;
+            padding-right: 5px;
+        }
+
+        .action-btn:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .action-btn:active {
+            transform: translateY(0);
+        }
+
+        .action-btn:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 480px) {
+            .dashboard-card {
+                padding: 30px 20px;
+            }
+            .action-btn {
+                font-size: 16px;
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="dashboard-card">
+            <h2><i class="fa-solid fa-graduation-cap"></i> Dashboard</h2>
+            
+            <a href="attendance.html" class="action-btn">
+                <i class="fa-solid fa-clipboard-user"></i>
+                Send Attendance
+            </a>
+            
+            <a href="Hw.html" class="action-btn">
+                <i class="fa-solid fa-book-open"></i>
+                Send HW
+            </a>
+            
+            <a href="http://bulkwaha_bot.com" class="action-btn">
+                <i class="fa-brands fa-whatsapp"></i>
+                Send Marks File
+            </a>
+        </div>
+    </div>
+
+</body>
+</html>
