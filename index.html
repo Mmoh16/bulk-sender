@@ -27,6 +27,32 @@
             min-height: 100vh;
         }
 
+        /* --- LOGIN OVERLAY STYLES --- */
+        #loginOverlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: var(--bg-color);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .login-box {
+            background-color: var(--card-bg);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 90%;
+            max-width: 320px;
+        }
+        .login-icon {
+            width: 50px; height: 50px;
+            fill: var(--primary-color);
+            margin-bottom: 20px;
+        }
+
         .container {
             width: 100%;
             display: flex;
@@ -292,6 +318,20 @@
     </style>
 </head>
 <body>
+    
+    <!-- LOGIN OVERLAY -->
+    <div id="loginOverlay">
+        <div class="login-box">
+            <!-- Lock Icon -->
+            <svg class="login-icon" viewBox="0 0 448 512"><path d="M144 144v48H304V144c0-44.2-35.8-80-80-80s-80 35.8-80 80zM80 192V144C80 64.5 144.5 0 224 0s144 64.5 144 144v48h16c35.3 0 64 28.7 64 64V448c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V256c0-35.3 28.7-64 64-64H80z"/></svg>
+            <h3 style="margin-top:0; color:var(--primary-color);">Security Check</h3>
+            <div class="form-group">
+                <input type="password" id="loginPass" class="form-input" placeholder="Enter Password">
+            </div>
+            <button onclick="checkLogin()" class="submit-btn">Unlock</button>
+            <p id="loginError" style="color: var(--error-red); display:none; margin-top:10px; font-weight:bold;">Incorrect Password</p>
+        </div>
+    </div>
 
     <div class="container">
         <div class="dashboard-card">
@@ -306,7 +346,7 @@
             <div class="action-row">
                 
                 <!-- This part is now a link (<a>) so it handles the redirect natively -->
-                <a href="attendance.html" class="label-part" title="Go to Attendance Page">
+                <a href="attend.html" class="label-part" title="Go to Attendance Page">
                     <!-- Checkbox Icon -->
                     <svg viewBox="0 0 448 512"><path d="M64 32C28.7 32 0 60.7 0 96V416c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V96c0-35.3-28.7-64-64-64H64zM337 209L209 337c-9.4 9.4-24.6 9.4-33.9 0l-64-64c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l47 47L303 175c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9z"/></svg>
                     <span>Attendance</span>
@@ -380,8 +420,36 @@
     </div>
 
     <script>
+        // --- LOGIN LOGIC ---
+        // 1. Check if user is already logged in for this session
+        if (sessionStorage.getItem('isLoggedIn') === 'true') {
+            document.getElementById('loginOverlay').style.display = 'none';
+        }
+
+        // 2. Function to check password
+        function checkLogin() {
+            const pass = document.getElementById('loginPass').value;
+            // Password set to "MoMohamed1"
+            if (pass === "MoMohamed1") {
+                document.getElementById('loginOverlay').style.display = 'none';
+                sessionStorage.setItem('isLoggedIn', 'true'); // Remember login
+            } else {
+                document.getElementById('loginError').style.display = 'block';
+            }
+        }
+        
+        // 3. Allow "Enter" key to submit password
+        document.getElementById('loginPass').addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                checkLogin();
+            }
+        });
+
+
+        // --- EXISTING APP LOGIC ---
+        
         // Store Icons for JS use
-        const spinnerSVG = `<svg class="spinner" viewBox="0 0 512 512"><path d="M304 48c0 26.51-21.49 48-48 48s-48-21.49-48-48 21.49-48 48-48 48 21.49 48 48zm-48 368c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.49-48-48-48zm208-208c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.49-48-48-21.49-48-48-48zM96 256c0-26.51-21.49-48-48-48S0 229.49 0 256s21.49 48 48 48 48-21.49 48-48zm12.922 99.078c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48c0-26.509-21.491-48-48-48zm294.156 0c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48c0-26.509-21.49-48-48-48zM108.922 60.922c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.491-48-48-48z" fill="currentColor"/></svg>`;
+        const spinnerSVG = `<svg class="spinner" viewBox="0 0 512 512"><path d="M304 48c0 26.51-21.49 48-48 48s-48-21.49-48-48 21.49-48 48-48 48 21.49 48 48zm-48 368c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.49-48-48-21.49-48-48-48zm208-208c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.49-48-48-21.49-48-48-48zM96 256c0-26.51-21.49-48-48-48S0 229.49 0 256s21.49 48 48 48 48-21.49 48-48zm12.922 99.078c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48c0-26.509-21.491-48-48-48zm294.156 0c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48c0-26.509-21.49-48-48-48zM108.922 60.922c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.491-48-48-48z" fill="currentColor"/></svg>`;
         
         // --- Modal Functions ---
         const modal = document.getElementById("sessionModal");
