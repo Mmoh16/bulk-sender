@@ -40,6 +40,8 @@
         .border-error { border-color: var(--error-red); }
         
         .text-accent { color: var(--accent-green); }
+
+        /* Note: Menu Styles are now inside navbar.js */
     </style>
 </head>
 <body>
@@ -48,110 +50,32 @@
     <header class="bg-[var(--primary-color)] text-white p-4 shadow-md sticky top-0 z-10">
         <div class="container mx-auto flex justify-between items-center">
             <h1 class="text-xl font-bold"><i class="fas fa-user-graduate mr-2"></i>Student Tracker</h1>
-            <div class="flex gap-2">
+            <div class="flex gap-2 items-center">
                 <button onclick="fetchStudents()" class="bg-white/20 text-white px-3 py-2 rounded-full font-bold text-sm hover:bg-white/30 transition backdrop-blur-sm">
                     <i class="fas fa-sync-alt"></i>
                 </button>
                 <button onclick="openAddModal()" class="bg-white text-[var(--primary-color)] px-4 py-2 rounded-full font-bold text-sm hover:bg-gray-100 transition shadow-sm">
                     + Add New
                 </button>
+                
+                <!-- MAIN MENU CONTAINER (Content loaded from navbar.js) -->
+                <div id="main-menu-container"></div>
+            
             </div>
         </div>
     </header>
 
     <div class="container mx-auto p-4 max-w-5xl">
         
-        <!-- Controls Section -->
-        <div class="bg-[var(--card-bg)] p-4 rounded-xl card-shadow mb-6">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                
-                <!-- Search -->
-                <div class="relative">
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
-                        <i class="fas fa-search"></i>
-                    </span>
-                    <input type="text" id="searchInput" placeholder="Search name or email..." 
-                        class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] focus:border-transparent transition bg-gray-50">
-                </div>
+    <!-- Link to your local navbar.js file -->
+    <script src="navbar.js"></script>
 
-                <!-- Filter -->
-                <div class="relative">
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
-                        <i class="fas fa-filter"></i>
-                    </span>
-                    <select id="filterInput" class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] focus:border-transparent bg-gray-50 appearance-none cursor-pointer">
-                        <option value="all">All Payment Statuses</option>
-                        <option value="fully_paid">Fully Paid</option>
-                        <option value="has_remaining">Has Remaining Balance</option>
-                    </select>
-                </div>
-
-                <!-- Sort -->
-                <div class="relative">
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
-                        <i class="fas fa-sort"></i>
-                    </span>
-                    <select id="sortInput" class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] focus:border-transparent bg-gray-50 appearance-none cursor-pointer">
-                        <option value="name_asc">Name (A-Z)</option>
-                        <option value="name_desc">Name (Z-A)</option>
-                        <option value="remaining_desc">Highest Debt First</option>
-                        <option value="paid_desc">Most Paid First</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-
-        <!-- Stats Summary -->
-        <div class="flex justify-between items-center mb-4 px-2">
-            <p class="text-gray-500 text-sm">Showing <span id="countDisplay" class="font-bold text-[var(--text-color)]">0</span> students</p>
-            <p class="text-gray-500 text-sm">Total Debt: <span id="totalDebtDisplay" class="font-bold text-[var(--error-red)]">$0</span></p>
-        </div>
-
-        <!-- Loading State -->
-        <div id="loadingState" class="hidden text-center py-4">
-            <div class="loader"></div>
-            <p class="text-gray-500 text-sm">Syncing with Notion...</p>
-        </div>
-
-        <!-- Grid Display -->
-        <div id="studentGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <!-- Cards will be injected here via JS -->
-        </div>
-
-        <!-- Empty State (Hidden by default) -->
-        <div id="emptyState" class="hidden text-center py-12">
-            <div class="text-gray-300 text-6xl mb-4"><i class="fas fa-folder-open"></i></div>
-            <p class="text-gray-500 text-lg">No students found matching your criteria.</p>
-        </div>
-    </div>
-
-    <!-- Add/Edit Modal -->
-    <div id="addModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-        <div class="bg-[var(--card-bg)] rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
-            <div class="bg-[var(--primary-color)] p-4 flex justify-between items-center text-white">
-                <h3 id="modalTitle" class="font-bold">Add Student to Notion</h3>
-                <button onclick="document.getElementById('addModal').classList.add('hidden')" class="hover:text-gray-200 transition"><i class="fas fa-times"></i></button>
-            </div>
-            <form id="addForm" class="p-4 space-y-3">
-                <!-- Hidden ID field for updates -->
-                <input type="hidden" id="studentId">
-                
-                <input type="text" id="newName" placeholder="Full Name" required class="w-full border border-gray-200 p-2 rounded focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]">
-                <input type="email" id="newEmail" placeholder="Email" class="w-full border border-gray-200 p-2 rounded focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]">
-                <div class="grid grid-cols-2 gap-2">
-                    <input type="tel" id="newStudentPhone" placeholder="Student Phone" required class="w-full border border-gray-200 p-2 rounded focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]">
-                    <input type="tel" id="newParentPhone" placeholder="Parent Phone" required class="w-full border border-gray-200 p-2 rounded focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]">
-                </div>
-                <div class="grid grid-cols-2 gap-2">
-                    <input type="number" id="newPaid" placeholder="Paid Amount ($)" required class="w-full border border-gray-200 p-2 rounded focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]">
-                    <input type="number" id="newRemaining" placeholder="Remaining ($)" required class="w-full border border-gray-200 p-2 rounded focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]">
-                </div>
-                <button type="submit" id="submitBtn" class="w-full bg-[var(--primary-color)] text-white py-2 rounded font-bold hover:bg-[var(--primary-hover)] mt-2 transition shadow-md">Save Student</button>
-            </form>
-        </div>
-    </div>
+    <!-- Or if you uploaded it to GitHub, use jsDelivr: 
+         <script src="https://cdn.jsdelivr.net/gh/YOUR_GITHUB_USER/YOUR_REPO/navbar.js"></script> 
+    -->
 
     <script>
+        // ... existing code for fetchStudents, etc ...
         // ==========================================
         // CONFIGURATION: N8N URLS
         // ==========================================
@@ -283,6 +207,24 @@
             modalTitle.innerText = "Edit Student";
             submitBtn.innerText = "Update Student";
             document.getElementById('addModal').classList.remove('hidden');
+        }
+
+        // --- MENU LOGIC ---
+        function toggleMenu() {
+            document.getElementById("mainMenu").classList.toggle("show-menu");
+        }
+
+        // Close menu if user clicks outside of it
+        window.onclick = function(event) {
+            if (!event.target.matches('.menu-btn') && !event.target.closest('.menu-btn')) {
+                var dropdowns = document.getElementsByClassName("dropdown-content");
+                for (var i = 0; i < dropdowns.length; i++) {
+                    var openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('show-menu')) {
+                        openDropdown.classList.remove('show-menu');
+                    }
+                }
+            }
         }
 
         function renderStudents() {
