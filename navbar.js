@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", function() {
         
         .menu-btn {
             background-color: white;
-            color: var(--primary-color, #0F9E99); /* Fallback color if var missing */
+            color: var(--primary-color, #0F9E99);
             border: none;
             border-radius: 50%;
             width: 40px;
@@ -32,7 +32,12 @@ document.addEventListener("DOMContentLoaded", function() {
             min-width: 200px;
             box-shadow: 0 8px 20px rgba(0,0,0,0.15);
             border-radius: 12px;
-            overflow: hidden;
+            
+            /* --- CHANGED HERE: Allow scrolling if menu is too tall --- */
+            overflow-y: auto; 
+            max-height: 80vh; 
+            /* -------------------------------------------------------- */
+            
             z-index: 1001;
             animation: fadeIn 0.2s ease-out;
             text-align: left;
@@ -66,12 +71,17 @@ document.addEventListener("DOMContentLoaded", function() {
     styleSheet.innerText = menuStyles;
     document.head.appendChild(styleSheet);
 
-// 2. INJECT HTML
+    // 2. INJECT HTML (WITH 4 BUTTONS)
     const menuHTML = `
         <button class="menu-btn" onclick="toggleMenu()">
             <svg viewBox="0 0 448 512"><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg>
         </button>
         <div id="mainMenu" class="dropdown-content">
+            <a href="index.html">
+                <svg viewBox="0 0 448 512"><path d="M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3C0 498.7 13.3 512 29.7 512H418.3c16.4 0 29.7-13.3 29.7-29.7C448 383.8 368.2 304 269.7 304H178.3z"/></svg>
+                Dashboard
+            </a>
+
             <a href="data-View.html">
                 <svg viewBox="0 0 448 512"><path d="M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3C0 498.7 13.3 512 29.7 512H418.3c16.4 0 29.7-13.3 29.7-29.7C448 383.8 368.2 304 269.7 304H178.3z"/></svg>
                 Student View
@@ -84,18 +94,13 @@ document.addEventListener("DOMContentLoaded", function() {
                 <svg viewBox="0 0 448 512"><path d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/></svg>
                 Send Attend
             </a>
-            <a href="attendance.html">
-                <svg viewBox="0 0 448 512"><path d="M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3C0 498.7 13.3 512 29.7 512H418.3c16.4 0 29.7-13.3 29.7-29.7C448 383.8 368.2 304 269.7 304H178.3z"/></svg>
-                Attendance
-            </a>
         </div>
     `;
 
-    // Find the container in your HTML where you want the menu
     const menuContainer = document.getElementById('main-menu-container');
     if(menuContainer) {
         menuContainer.innerHTML = menuHTML;
-        menuContainer.className = "menu-container"; // Ensure class is applied
+        menuContainer.className = "menu-container";
     }
 });
 
