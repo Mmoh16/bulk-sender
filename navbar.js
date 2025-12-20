@@ -33,10 +33,8 @@ document.addEventListener("DOMContentLoaded", function() {
             box-shadow: 0 8px 20px rgba(0,0,0,0.15);
             border-radius: 12px;
             
-            /* --- CHANGED HERE: Allow scrolling if menu is too tall --- */
             overflow-y: auto; 
             max-height: 80vh; 
-            /* -------------------------------------------------------- */
             
             z-index: 1001;
             animation: fadeIn 0.2s ease-out;
@@ -71,7 +69,7 @@ document.addEventListener("DOMContentLoaded", function() {
     styleSheet.innerText = menuStyles;
     document.head.appendChild(styleSheet);
 
-    // 2. INJECT HTML (WITH 4 BUTTONS)
+    // 2. INJECT HTML (WITH DATABASE ICON FOR STUDENT VIEW)
     const menuHTML = `
         <button class="menu-btn" onclick="toggleMenu()">
             <svg viewBox="0 0 448 512"><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg>
@@ -83,7 +81,7 @@ document.addEventListener("DOMContentLoaded", function() {
             </a>
 
             <a href="data-View.html">
-                <svg viewBox="0 0 448 512"><path d="M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3C0 498.7 13.3 512 29.7 512H418.3c16.4 0 29.7-13.3 29.7-29.7C448 383.8 368.2 304 269.7 304H178.3z"/></svg>
+                <svg viewBox="0 0 448 512"><path d="M448 73.1c0-40.4-100.3-73.1-224-73.1S0 32.7 0 73.1 0 113.5 100.3 146.3 224 146.3 448 113.5 448 73.1zM0 173.1C0 213.5 100.3 246.3 224 246.3s224-32.7 224-73.1v-48c-35.7 19.5-104.2 32-176 32-71.8 0-140.3-12.5-176-32v48zm0 144c0 40.4 100.3 73.1 224 73.1s224-32.7 224-73.1v-48c-35.7 19.5-104.2 32-176 32-71.8 0-140.3-12.5-176-32v48zm0 144c0 40.4 100.3 73.1 224 73.1s224-32.7 224-73.1v-48c-35.7 19.5-104.2 32-176 32-71.8 0-140.3-12.5-176-32v48z"/></svg>
                 Student View
             </a>
             <a href="Hw.html">
