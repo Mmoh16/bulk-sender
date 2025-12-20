@@ -3,15 +3,23 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Student WhatsApp Links</title>
+<title>Hw Marks</title>
 <style>
+:root {
+  --primary-color: #0F9E99; /* Tropical Teal */
+  --background-color: #EFE9E0; /* Soft Ivory */
+  --row-even-color: #E0F2F1; /* Bright/Light Teal */
+  --row-odd-color: #ffffff; /* White/Bright Ivory */
+}
+
 body { 
   font-family: Arial, sans-serif; 
-  background: #f9f9f9; 
+  background: var(--background-color); 
   padding: 20px; 
 }
 
-/* --- ADDED CONTROL PANEL STYLES --- */
+/* ... existing styles ... */
+/* (Keep your existing styles for .controls, .table-section, etc. here) */
 .controls {
     background: white;
     padding: 15px;
@@ -32,10 +40,11 @@ body {
     color: white;
     font-size: 14px;
 }
-.btn-start { background-color: #28a745; }
-.btn-start:hover { background-color: #218838; }
+.btn-start { background-color: var(--primary-color); }
+.btn-start:hover { opacity: 0.9; }
 .btn-stop { background-color: #dc3545; }
 .btn-stop:hover { background-color: #c82333; }
+
 .status-display {
     font-weight: bold;
     color: #555;
@@ -46,60 +55,68 @@ body {
     font-family: monospace;
     font-size: 1.2em;
 }
-/* Highlight the active row being processed */
-tr.active-row {
-    background-color: #e8f5e9;
-    border-left: 5px solid #28a745;
+
+/* --- TABLE CONTAINER (Rounded & Wide) --- */
+.table-section {
+    width: 95%;           /* Large Width */
+    margin: 20px auto;    /* Center the section */
+    border-radius: 15px; /* Rounded Corners */
+    overflow: hidden;    /* Clips the table corners */
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    background: white;
 }
-/* ---------------------------------- */
 
 table { 
   width: 100%; 
   border-collapse: collapse; 
   background: white; 
 }
+
+tr:nth-child(even) { background-color: var(--row-even-color); }
+tr:nth-child(odd) { background-color: var(--row-odd-color); }
+
+tr.active-row {
+    background-color: rgba(15, 158, 153, 0.3) !important; 
+    border-left: 5px solid var(--primary-color);
+}
+
+h2 { color: var(--primary-color); }
+
 th, td { 
   padding: 10px; 
   border: 1px solid #ddd; 
   text-align: left; 
 }
 th { 
-  background-color: #f2f2f2; 
+  background-color: var(--primary-color); 
+  color: white;
+  border-top: none; 
 }
 
-/* --- MODIFICATIONS START --- */
-
-/* 'Name' Column (Second column) */
-th:nth-child(2), td:nth-child(2) {
-  width: 35%; /* <-- Set a specific width for the Name column */
-}
-
-/* 'Sent?' Column (Third column) */
-th:nth-child(3), td:nth-child(3) {
-  width: 10%; /* <-- Made this column narrower */
-  text-align: center; /* Center the checkbox */
-}
+th:nth-child(1), td:nth-child(1) { width: 5%; text-align: center; }
+th:nth-child(2), td:nth-child(2) { width: 50%; }
+th:nth-child(3), td:nth-child(3) { width: 5%; text-align: center; }
 
 input[type="checkbox"] { 
-  width: 15px;  /* <-- Made checkbox smaller (was 18px) */
-  height: 15px; /* <-- Made checkbox smaller (was 18px) */
+  width: 15px;
+  height: 15px;
   cursor: pointer; 
-  vertical-align: middle; /* Aligns checkbox nicely in the cell */
+  vertical-align: middle;
 }
 
-/* --- MODIFICATIONS END --- */
-
 a { 
-  color: #007bff; 
+  color: var(--primary-color); 
   font-weight: bold; 
   text-decoration: none; 
 }
-a:hover { 
-  text-decoration: underline; 
-}
+a:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
+
+<!-- 1. ADD MENU CONTAINER HERE (Fixed Position) -->
+<div id="main-menu-container" style="position: fixed; top: 15px; right: 15px; z-index: 9999;"></div>
+
 <h2>Student WhatsApp Links</h2>
 
 <!-- ADDED CONTROL PANEL HTML -->
@@ -109,9 +126,11 @@ a:hover {
     <div class="status-display" id="statusText">Status: Ready</div>
 </div>
 
-<table>
-<tr><th>#</th><th>Name</th><th>Sent?</th><th>Message Link</th></tr>
-
+<!-- Wrapped Table in a Section for Rounded Corners -->
+<div class="table-section">
+    <table>
+    <tr><th>No.</th><th>Name</th><th>Done</th><th>Message Link</th></tr>
+    
     <tr id="row_0">
       <td>1</td>
       <td>Abdelrahman ayman Ibrahim</td>
@@ -1582,7 +1601,12 @@ a:hover {
       <td><a href="https://wa.me/201550166555?text=hello%2C%20I%20couldnt%20find%20any%20Email%20for%20Betty%20Hany%2C%20So%20I%20need%20the%20Email%20Used%20When%20regesterd%20on%20the%20website" target="_blank" onclick="markAsSent(209)">Open Link</a></td>
     </tr>
   
-</table>
+    </table>
+</div>
+
+<!-- 2. ADD NAVBAR SCRIPT HERE -->
+<!-- Note: Ensure navbar.js is in the same folder as this file, or use your GitHub CDN link -->
+<script src="navbar.js"></script>
 
 <!-- ADDED AUTOMATION SCRIPT -->
 <script>
@@ -1597,17 +1621,14 @@ a:hover {
     var countdownTimer = null;
     var nextIndex = 0;
     
-    // 8 Seconds in milliseconds
     var INTERVAL_SECONDS = 8;
     var INTERVAL_MS = INTERVAL_SECONDS * 1000; 
 
     function startAutoSend() {
-        if (timer) return; // Already running
+        if (timer) return; 
 
-        // Find the first unchecked student to start from
         nextIndex = -1;
         var i = 0;
-        // Loop until we run out of rows
         while(document.getElementById('row_' + i)) {
             if(!document.getElementById('checkbox_' + i).checked) {
                 nextIndex = i;
@@ -1631,7 +1652,6 @@ a:hover {
         countdownTimer = null;
         document.getElementById('statusText').innerText = "Status: Stopped";
         
-        // Remove active highlight
         var rows = document.querySelectorAll('tr');
         rows.forEach(function(tr) { tr.classList.remove('active-row'); });
     }
@@ -1644,21 +1664,18 @@ a:hover {
             return;
         }
 
-        // If user manually checked it while waiting, skip it
         if (document.getElementById('checkbox_' + nextIndex).checked) {
             nextIndex++;
             processNext(); 
             return;
         }
 
-        // 1. Highlight Row
         var allRows = document.querySelectorAll('tr');
         allRows.forEach(function(tr) { tr.classList.remove('active-row'); });
         
         row.classList.add('active-row');
         row.scrollIntoView({behavior: "smooth", block: "center"});
 
-        // 2. Open Link - Extract from anchor tag
         var linkTag = row.querySelector('a');
         if(linkTag) {
             var win = window.open(linkTag.href, '_blank');
@@ -1669,14 +1686,11 @@ a:hover {
             }
         }
 
-        // 3. Mark Checked
         markAsSent(nextIndex);
 
-        // 4. Set Timer for Next
         nextIndex++;
         startCountdown(INTERVAL_MS);
         
-        // Schedule next execution
         timer = setTimeout(processNext, INTERVAL_MS);
     }
 
