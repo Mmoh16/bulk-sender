@@ -210,7 +210,7 @@
                 const rawData = await response.json();
                 console.log("Data received:", rawData);
 
-                // Robust parsing: Handle if data is array, or wrapped in {data: []}, or {body: []}
+                // Robust parsing
                 let rawList = [];
                 if (Array.isArray(rawData)) {
                     rawList = rawData;
@@ -299,14 +299,11 @@
             document.getElementById('addModal').classList.remove('hidden');
         }
 
-        // Pre-fills modal
         function openEditModal(index) {
             const student = students[index];
             if(!student) return;
 
-            // Set the hidden ID
             document.getElementById('studentId').value = student.id;
-            
             document.getElementById('newName').value = student.name;
             document.getElementById('newEmail').value = student.email;
             document.getElementById('newStudentPhone').value = student.studentPhone;
@@ -322,7 +319,6 @@
         function renderStudents() {
             let filtered = students;
 
-            // 1. Search Logic
             const term = searchInput.value.toLowerCase();
             filtered = filtered.filter(s => 
                 (s.name && s.name.toLowerCase().includes(term)) || 
@@ -330,7 +326,6 @@
                 (s.studentPhone && s.studentPhone.includes(term))
             );
 
-            // 2. Filter Logic
             const filterVal = filterInput.value;
             if (filterVal === 'fully_paid') {
                 filtered = filtered.filter(s => s.remaining === 0);
@@ -338,7 +333,6 @@
                 filtered = filtered.filter(s => s.remaining > 0);
             }
 
-            // 3. Sort Logic
             const sortVal = sortInput.value;
             filtered.sort((a, b) => {
                 const nameA = a.name || '';
@@ -350,15 +344,12 @@
                 return 0;
             });
 
-            // Update UI Stats
             countDisplay.innerText = filtered.length;
             const totalDebt = filtered.reduce((sum, s) => sum + (parseFloat(s.remaining) || 0), 0);
             totalDebtDisplay.innerText = `$${totalDebt.toLocaleString()}`;
 
             grid.innerHTML = '';
             
-            // Logic Fix: Show empty state if filtered results are empty, 
-            // regardless of whether the original list was empty (initial load or DB empty)
             if (filtered.length === 0) {
                 emptyState.classList.remove('hidden'); 
                 return;
@@ -367,11 +358,9 @@
             }
 
             filtered.forEach((s, index) => {
-                // Find original index in main array for edit function
                 const originalIndex = students.indexOf(s);
-
                 const isPaidOff = s.remaining === 0;
-                // Colors using Arbitrary Values based on your Palette
+                
                 const statusColor = isPaidOff 
                     ? 'bg-[var(--primary-color)] text-white' 
                     : 'bg-[var(--error-red)]/10 text-[var(--error-red)]';
@@ -385,13 +374,14 @@
                 const card = document.createElement('div');
                 card.className = `bg-[var(--card-bg)] rounded-xl card-shadow p-5 border-l-4 ${borderColor}`;
                 
+                // --- FIX APPLIED HERE ---
                 card.innerHTML = `
                     <div class="flex justify-between items-start mb-3">
-                        <div>
-                            <h3 class="font-bold text-lg text-[var(--text-color)]">${s.name}</h3>
-                            <p class="text-sm text-gray-500"><i class="fas fa-envelope mr-1"></i> ${s.email}</p>
+                        <div class="min-w-0 pr-2">
+                            <h3 class="font-bold text-lg text-[var(--text-color)] break-words">${s.name}</h3>
+                            <p class="text-sm text-gray-500 truncate"><i class="fas fa-envelope mr-1"></i> ${s.email}</p>
                         </div>
-                        <span class="px-2 py-1 rounded text-xs font-bold ${statusColor}">${statusText}</span>
+                        <span class="px-2 py-1 rounded text-xs font-bold ${statusColor} whitespace-nowrap flex-shrink-0">${statusText}</span>
                     </div>
 
                     <div class="grid grid-cols-2 gap-2 mb-4">
