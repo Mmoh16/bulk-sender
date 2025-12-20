@@ -69,26 +69,40 @@
         
         <!-- Controls Section -->
         <div class="bg-[var(--card-bg)] p-4 rounded-xl card-shadow mb-6">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 
                 <!-- Search -->
                 <div class="relative">
                     <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
                         <i class="fas fa-search"></i>
                     </span>
-                    <input type="text" id="searchInput" placeholder="Search name or email..." 
+                    <input type="text" id="searchInput" placeholder="Search..." 
                         class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] focus:border-transparent transition bg-gray-50">
                 </div>
 
-                <!-- Filter -->
+                <!-- Payment Filter -->
                 <div class="relative">
                     <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
-                        <i class="fas fa-filter"></i>
+                        <i class="fas fa-money-bill-wave"></i>
                     </span>
                     <select id="filterInput" class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] focus:border-transparent bg-gray-50 appearance-none cursor-pointer">
-                        <option value="all">All Payment Statuses</option>
+                        <option value="all">All Payments</option>
                         <option value="fully_paid">Fully Paid</option>
-                        <option value="has_remaining">Has Remaining Balance</option>
+                        <option value="has_remaining">Unpaid</option>
+                    </select>
+                </div>
+
+                <!-- Date Filter (NEW) -->
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                        <i class="fas fa-calendar-day"></i>
+                    </span>
+                    <select id="dateFilterInput" class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] focus:border-transparent bg-gray-50 appearance-none cursor-pointer">
+                        <option value="all">All Dates</option>
+                        <option value="today">Joined Today</option>
+                        <option value="yesterday">Joined Yesterday</option>
+                        <option value="this_week">This Week</option>
+                        <option value="this_month">This Month</option>
                     </select>
                 </div>
 
@@ -99,9 +113,9 @@
                     </span>
                     <select id="sortInput" class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] focus:border-transparent bg-gray-50 appearance-none cursor-pointer">
                         <option value="name_asc">Name (A-Z)</option>
-                        <option value="name_desc">Name (Z-A)</option>
-                        <option value="remaining_desc">Highest Debt First</option>
-                        <option value="paid_desc">Most Paid First</option>
+                        <option value="date_desc">Newest First</option>
+                        <option value="remaining_desc">Highest Debt</option>
+                        <option value="paid_desc">Most Paid</option>
                     </select>
                 </div>
             </div>
@@ -174,6 +188,7 @@
         const grid = document.getElementById('studentGrid');
         const searchInput = document.getElementById('searchInput');
         const filterInput = document.getElementById('filterInput');
+        const dateFilterInput = document.getElementById('dateFilterInput');
         const sortInput = document.getElementById('sortInput');
         const countDisplay = document.getElementById('countDisplay');
         const totalDebtDisplay = document.getElementById('totalDebtDisplay');
@@ -192,6 +207,7 @@
         // Event Listeners
         searchInput.addEventListener('input', renderStudents);
         filterInput.addEventListener('change', renderStudents);
+        dateFilterInput.addEventListener('change', renderStudents);
         sortInput.addEventListener('change', renderStudents);
         
         // --- API FUNCTIONS ---
@@ -222,16 +238,35 @@
                     console.warn("Unexpected data format", rawData);
                 }
                 
-                students = rawList.map((item, index) => ({
-                    // Use the real ID from Notion if available, otherwise fallback to index
-                    id: item["id"] || item["ID"] || index, 
-                    name: item["Name"] || "No Name",
-                    email: item["Email"] || "",
-                    studentPhone: item["Student Phone"] || "",
-                    parentPhone: item["Parent Phone"] || "",
-                    paid: parseFloat(item["Paid"]) || 0,
-                    remaining: parseFloat(item["Remaining"]) || 0
-                }));
+                students = rawList.map((item, index) => {
+                    // Parse Date Field
+                    let joinedDate = null;
+                    try {
+                        const rawDate = item["date"];
+                        if (rawDate) {
+                            if (typeof rawDate === 'string' && rawDate.trim().startsWith('{')) {
+                                const parsed = JSON.parse(rawDate);
+                                joinedDate = parsed.start; // Notion often returns { start: "ISO...", ... }
+                            } else if (typeof rawDate === 'object') {
+                                joinedDate = rawDate.start || rawDate;
+                            } else {
+                                joinedDate = rawDate;
+                            }
+                        }
+                    } catch (e) { console.warn("Date parse error for item", index, e); }
+
+                    return {
+                        // Use the real ID from Notion if available, otherwise fallback to index
+                        id: item["id"] || item["ID"] || index, 
+                        name: item["Name"] || "No Name",
+                        email: item["Email"] || "",
+                        studentPhone: item["Student Phone"] || "",
+                        parentPhone: item["Parent Phone"] || "",
+                        paid: parseFloat(item["Paid"]) || 0,
+                        remaining: parseFloat(item["Remaining"]) || 0,
+                        joinedDate: joinedDate
+                    };
+                });
                 
                 renderStudents();
             } catch (error) {
@@ -319,6 +354,7 @@
         function renderStudents() {
             let filtered = students;
 
+            // 1. Text Search
             const term = searchInput.value.toLowerCase();
             filtered = filtered.filter(s => 
                 (s.name && s.name.toLowerCase().includes(term)) || 
@@ -326,6 +362,7 @@
                 (s.studentPhone && s.studentPhone.includes(term))
             );
 
+            // 2. Payment Filter
             const filterVal = filterInput.value;
             if (filterVal === 'fully_paid') {
                 filtered = filtered.filter(s => s.remaining === 0);
@@ -333,17 +370,55 @@
                 filtered = filtered.filter(s => s.remaining > 0);
             }
 
+            // 3. Date Filter (New logic)
+            const dateVal = dateFilterInput.value;
+            if (dateVal !== 'all') {
+                const now = new Date();
+                // Reset to start of day for comparison
+                const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                
+                filtered = filtered.filter(s => {
+                    if (!s.joinedDate) return false;
+                    const d = new Date(s.joinedDate);
+                    const sDate = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+                    
+                    if (dateVal === 'today') {
+                        return sDate.getTime() === today.getTime();
+                    } else if (dateVal === 'yesterday') {
+                        const yesterday = new Date(today);
+                        yesterday.setDate(today.getDate() - 1);
+                        return sDate.getTime() === yesterday.getTime();
+                    } else if (dateVal === 'this_week') {
+                        const oneWeekAgo = new Date(today);
+                        oneWeekAgo.setDate(today.getDate() - 7);
+                        return sDate >= oneWeekAgo;
+                    } else if (dateVal === 'this_month') {
+                        return sDate.getMonth() === today.getMonth() && sDate.getFullYear() === today.getFullYear();
+                    }
+                    return true;
+                });
+            }
+
+            // 4. Sorting
             const sortVal = sortInput.value;
             filtered.sort((a, b) => {
                 const nameA = a.name || '';
                 const nameB = b.name || '';
                 if (sortVal === 'name_asc') return nameA.localeCompare(nameB);
                 if (sortVal === 'name_desc') return nameB.localeCompare(nameA);
+                
+                if (sortVal === 'date_desc') {
+                    const dateA = a.joinedDate ? new Date(a.joinedDate) : new Date(0);
+                    const dateB = b.joinedDate ? new Date(b.joinedDate) : new Date(0);
+                    return dateB - dateA;
+                }
+
                 if (sortVal === 'remaining_desc') return (b.remaining || 0) - (a.remaining || 0);
                 if (sortVal === 'paid_desc') return (b.paid || 0) - (a.paid || 0);
                 return 0;
             });
 
+            // Update Counts
             countDisplay.innerText = filtered.length;
             const totalDebt = filtered.reduce((sum, s) => sum + (parseFloat(s.remaining) || 0), 0);
             totalDebtDisplay.innerText = `$${totalDebt.toLocaleString()}`;
@@ -357,6 +432,7 @@
                 emptyState.classList.add('hidden');
             }
 
+            // Render Grid
             filtered.forEach((s, index) => {
                 const originalIndex = students.indexOf(s);
                 const isPaidOff = s.remaining === 0;
@@ -371,15 +447,22 @@
                 const sPhone = s.studentPhone || '';
                 const pPhone = s.parentPhone || '';
 
+                // Format Date for display
+                let dateDisplay = '';
+                if (s.joinedDate) {
+                    const d = new Date(s.joinedDate);
+                    dateDisplay = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+                }
+
                 const card = document.createElement('div');
                 card.className = `bg-[var(--card-bg)] rounded-xl card-shadow p-5 border-l-4 ${borderColor}`;
                 
-                // --- FIX APPLIED HERE ---
                 card.innerHTML = `
                     <div class="flex justify-between items-start mb-3">
                         <div class="min-w-0 pr-2">
                             <h3 class="font-bold text-lg text-[var(--text-color)] break-words">${s.name}</h3>
                             <p class="text-sm text-gray-500 truncate"><i class="fas fa-envelope mr-1"></i> ${s.email}</p>
+                            ${dateDisplay ? `<p class="text-xs text-gray-400 mt-1"><i class="far fa-calendar-alt mr-1"></i> ${dateDisplay}</p>` : ''}
                         </div>
                         <span class="px-2 py-1 rounded text-xs font-bold ${statusColor} whitespace-nowrap flex-shrink-0">${statusText}</span>
                     </div>
