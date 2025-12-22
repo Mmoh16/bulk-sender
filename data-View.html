@@ -59,7 +59,7 @@
         <div class="container mx-auto flex justify-between items-center">
             <h1 class="text-xl font-bold"><i class="fas fa-user-graduate mr-2"></i>Student Tracker</h1>
             <div class="flex gap-2 items-center">
-                <button onclick="fetchSt udents()" class="bg-white/20 text-white px-3 py-2 rounded-full font-bold text-sm hover:bg-white/30 transition backdrop-blur-sm">
+                <button onclick="fetchStudents()" class="bg-white/20 text-white px-3 py-2 rounded-full font-bold text-sm hover:bg-white/30 transition backdrop-blur-sm">
                     <i class="fas fa-sync-alt"></i>
                 </button>
                 <button onclick="openAddModal()" class="bg-white text-[var(--primary-color)] px-4 py-2 rounded-full font-bold text-sm hover:bg-gray-100 transition shadow-sm">
@@ -203,7 +203,7 @@
                 <div id="modalStudentId" class="text-2xl font-bold text-[var(--primary-color)] mb-6 font-mono bg-gray-50 inline-block px-4 py-1 rounded-lg">--</div>
                 
                 <div class="relative w-full aspect-square bg-gray-100 rounded-lg overflow-hidden border border-gray-200 shadow-inner flex items-center justify-center">
-                    <img id="modalImage" src="" alt="Student" class="object-cover w-full h-full hidden">
+                    <img id="modalImage" src="" alt="Student" class="object-cover w-full h-full hidden" referrerpolicy="no-referrer">
                     <div id="modalImagePlaceholder" class="text-gray-400 flex flex-col items-center">
                         <i class="fa-regular fa-image text-4xl mb-2"></i>
                         <span class="text-sm">No image available</span>
@@ -487,7 +487,8 @@
                 let dateDisplay = '';
                 if (s.joinedDate) dateDisplay = new Date(s.joinedDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 
-                const imgUrlSafe = s.imageUrl ? s.imageUrl.replace(/"/g, '&quot;') : '';
+                // Safety check for quotes in URL
+                const imgUrlSafe = s.imageUrl ? s.imageUrl.replace(/"/g, '&quot;').replace(/'/g, "\\'") : '';
 
                 const card = document.createElement('div');
                 card.className = `bg-[var(--card-bg)] rounded-xl card-shadow p-5 border-l-4 ${borderColor}`;
@@ -579,10 +580,14 @@
 
         function convertDriveLink(url) {
             if (!url) return '';
-            const idPattern = /[-\w]{25,}/;
-            const match = url.match(idPattern);
-            if (match && (url.includes('drive.google.com') || url.includes('docs.google.com'))) {
-                return `https://drive.google.com/uc?export=view&id=${match[0]}`;
+            
+            // Try to find the ID after /d/ or id=
+            // Matches .../d/THE_ID/... or ...id=THE_ID...
+            const match = url.match(/\/d\/([-\w]+)/) || url.match(/id=([-\w]+)/);
+            
+            if (match && match[1]) {
+                // Use the lh3.googleusercontent.com domain which is more reliable for direct embedding
+                return `https://lh3.googleusercontent.com/d/${match[1]}`;
             }
             return url;
         }
