@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Secure Login Portal</title>
-    <!-- Simple styling to make it look nice -->
     <style>
         :root {
             --primary-color: #0F9E99;
@@ -13,9 +12,7 @@
             --card-bg: #FFFFFF;
             --text-color: #333333;
             --accent-green: #25D366;
-            --error-red: #d32f2f;
         }
-
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg-color);
@@ -49,11 +46,9 @@
             cursor: pointer;
             font-weight: bold;
             margin-top: 20px;
-            transition: background-color 0.2s;
         }
         .btn:hover { background-color: var(--primary-hover); }
 
-        /* Loading Spinner */
         .loader {
             border: 4px solid #f3f3f3;
             border-top: 4px solid var(--primary-color);
@@ -64,111 +59,62 @@
             margin: 20px auto;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        /* Status Box Styles */
-        .status-box {
-            background: #f0fdf4; 
-            border: 1px solid var(--accent-green); 
-            color: #166534; 
-            padding: 15px; 
-            border-radius: 8px;
-        }
     </style>
+
+    <!-- YOUR OFFICIAL CLERK SCRIPT -->
+    <script
+        async
+        crossorigin="anonymous"
+        data-clerk-publishable-key="pk_test_cHJlcGFyZWQtZmFsY29uLTU2LmNsZXJrLmFjY291bnRzLmRldiQ"
+        src="https://prepared-falcon-56.clerk.accounts.dev/npm/@clerk/clerk-js@5/dist/clerk.browser.js"
+        type="text/javascript">
+    </script>
 </head>
 <body>
 
     <div class="container">
-        <!-- Loading State -->
+        <!-- Loading -->
         <div id="loading">
             <div class="loader"></div>
-            <p>Securing connection...</p>
+            <p>Loading security...</p>
         </div>
 
-        <!-- Logged Out State (Login Box) -->
+        <!-- Login Box -->
         <div id="signed-out" class="hidden">
             <h1>Welcome</h1>
-            <p>Please sign in to access the secure dashboard.</p>
+            <p>Please sign in to continue.</p>
             <div id="clerk-sign-in"></div>
         </div>
 
-        <!-- Logged In State (Secret Content) -->
+        <!-- Secret Content -->
         <div id="signed-in" class="hidden">
             <h1>🔒 Access Granted</h1>
-            <p id="welcome-message">Welcome back!</p>
+            <p id="welcome-message">Welcome!</p>
             <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
-            <div class="status-box">
+            <p style="background: #ecfdf5; color: #047857; padding: 15px; border-radius: 8px;">
                 <strong>Secret Data:</strong><br>
-                Because you are logged in, you can see this message.<br>
-                Your database connection is active.
-            </div>
-            <button class="btn" id="sign-out-btn">Sign Out</button>
+                You are securely logged in.
+            </p>
+            <button class="btn" onclick="Clerk.signOut()">Sign Out</button>
         </div>
     </div>
 
-    <!-- CLERK SCRIPT -->
-    <script
-        async
-        crossorigin="anonymous"
-        src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"
-        type="text/javascript">
-    </script>
-
     <script>
-        // Define your Publishable Key here
-        const PUBLISHABLE_KEY = 'pk_test_cHJlcGFyZWQtZmFsY29uLTU2LmNsZXJrLmFjY291bnRzLmRldiQ';
-
         window.addEventListener("load", async function () {
-            try {
-                // Ensure Clerk is loaded from CDN
-                if (!window.Clerk) {
-                    throw new Error("Clerk library not found. Please check your internet connection.");
-                }
+            await Clerk.load();
 
-                // Initialize Clerk instance manually for better reliability
-                const clerk = new window.Clerk(PUBLISHABLE_KEY);
-                await clerk.load();
-
-                const loadingDiv = document.getElementById("loading");
-                const signedOutDiv = document.getElementById("signed-out");
-                const signedInDiv = document.getElementById("signed-in");
-                const welcomeMsg = document.getElementById("welcome-message");
-                const signOutBtn = document.getElementById("sign-out-btn");
-
-                if (clerk.user) {
-                    // USER IS LOGGED IN
-                    loadingDiv.classList.add("hidden");
-                    signedInDiv.classList.remove("hidden");
-                    welcomeMsg.innerText = `Welcome back, ${clerk.user.firstName || "User"}!`;
-                    
-                    // Attach sign out event
-                    signOutBtn.onclick = async () => {
-                        await clerk.signOut();
-                        window.location.reload();
-                    };
-
-                } else {
-                    // USER IS LOGGED OUT
-                    loadingDiv.classList.add("hidden");
-                    signedOutDiv.classList.remove("hidden");
-                    
-                    // Mount the login box inside the div
-                    clerk.mountSignIn(document.getElementById("clerk-sign-in"), {
-                        appearance: {
-                            variables: {
-                                colorPrimary: '#0F9E99', // Matches your CSS
-                                colorText: '#333333'
-                            }
-                        }
-                    });
-                }
-            } catch (err) {
-                console.error("Error loading Clerk:", err);
-                const loadingDiv = document.getElementById("loading");
-                loadingDiv.innerHTML = `
-                    <p style="color: var(--error-red); font-weight: bold;">Error initializing security.</p>
-                    <p style="font-size: 0.8em; color: #666;">If you are seeing this in a preview window, it may be blocked by browser security.</p>
-                    <p style="font-size: 0.8em; color: #666;">Please deploy to Netlify to test the live login.</p>
-                `;
+            if (Clerk.user) {
+                document.getElementById("loading").classList.add("hidden");
+                document.getElementById("signed-in").classList.remove("hidden");
+                document.getElementById("welcome-message").innerText = `Welcome, ${Clerk.user.firstName}!`;
+            } else {
+                document.getElementById("loading").classList.add("hidden");
+                document.getElementById("signed-out").classList.remove("hidden");
+                Clerk.mountSignIn(document.getElementById("clerk-sign-in"), {
+                    appearance: {
+                        variables: { colorPrimary: '#0F9E99' }
+                    }
+                });
             }
         });
     </script>
