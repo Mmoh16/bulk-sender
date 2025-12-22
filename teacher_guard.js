@@ -15,7 +15,13 @@ script.crossOrigin = "anonymous";
 script.setAttribute('data-clerk-publishable-key', CLERK_KEY);
 document.head.appendChild(script);
 
-// 2. Run Security Check when Clerk loads
+// 2. Create a Loading Overlay
+const loadingOverlay = document.createElement('div');
+loadingOverlay.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:white;z-index:99999;display:flex;justify-content:center;align-items:center;font-family:sans-serif;";
+loadingOverlay.innerHTML = "<h3>🔒 Verifying Teacher Access...</h3>";
+document.documentElement.appendChild(loadingOverlay);
+
+// 3. Run Security Check when Clerk loads
 script.onload = async () => {
     try {
         await Clerk.load();
@@ -25,7 +31,10 @@ script.onload = async () => {
             
             // Check if user is in the Teacher list
             if (TEACHER_EMAILS.includes(userEmail)) {
-                // SUCCESS: Reveal the page
+                // === ACCESS GRANTED ===
+                // Remove loading overlay
+                loadingOverlay.remove();
+                // Reveal the content
                 document.body.style.display = "block";
                 
                 // If there is a spot for the User Button, add it
@@ -33,11 +42,16 @@ script.onload = async () => {
                 if(btnContainer) Clerk.mountUserButton(btnContainer);
                 
             } else {
-                // FAIL: Redirect Students
+                // === ACCESS DENIED (STUDENT) ===
+                // 1. Destroy the page content immediately
+                document.body.innerHTML = "";
+                // 2. Show error
+                document.write("<h1 style='text-align:center; margin-top:50px;'>⛔ Access Denied: Teachers Only</h1>");
+                // 3. Kick them out
                 window.location.href = STUDENT_VIEW_URL;
             }
         } else {
-            // FAIL: Not logged in
+            // === NOT LOGGED IN ===
             window.location.href = LOGIN_PAGE_URL;
         }
     } catch (err) {
