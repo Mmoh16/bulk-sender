@@ -12,6 +12,7 @@
             --card-bg: #FFFFFF;
             --text-color: #333333;
             --accent-green: #25D366;
+            --error-red: #d32f2f;
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -31,11 +32,22 @@
             max-width: 500px;
             width: 100%;
             text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
         .hidden { display: none; }
         
-        h1 { color: var(--primary-color); margin-bottom: 1rem; }
-        p { color: var(--text-color); line-height: 1.5; }
+        /* Ensure the Clerk form itself is centered */
+        #clerk-sign-in {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            margin-top: 1rem;
+        }
+        
+        h1 { color: var(--primary-color); margin-bottom: 1rem; width: 100%; }
+        p { color: var(--text-color); line-height: 1.5; width: 100%; }
         
         .btn {
             background-color: var(--primary-color);
@@ -59,6 +71,17 @@
             margin: 20px auto;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .error-message {
+            color: var(--error-red);
+            background-color: #fef2f2;
+            border: 1px solid #fecaca;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            text-align: left;
+            font-size: 0.9em;
+        }
     </style>
 
     <!-- YOUR OFFICIAL CLERK SCRIPT -->
@@ -85,36 +108,51 @@
             <p>Please sign in to continue.</p>
             <div id="clerk-sign-in"></div>
         </div>
-
-        <!-- Secret Content -->
-        <div id="signed-in" class="hidden">
-            <h1>🔒 Access Granted</h1>
-            <p id="welcome-message">Welcome!</p>
-            <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
-            <p style="background: #ecfdf5; color: #047857; padding: 15px; border-radius: 8px;">
-                <strong>Secret Data:</strong><br>
-                You are securely logged in.
-            </p>
-            <button class="btn" onclick="Clerk.signOut()">Sign Out</button>
-        </div>
     </div>
 
     <script>
-        window.addEventListener("load", async function () {
-            await Clerk.load();
+        // The URL to send users to after they log in
+        const REDIRECT_URL = "https://mmoh16.github.io/bulk-sender/dashboard.html";
 
-            if (Clerk.user) {
-                document.getElementById("loading").classList.add("hidden");
-                document.getElementById("signed-in").classList.remove("hidden");
-                document.getElementById("welcome-message").innerText = `Welcome, ${Clerk.user.firstName}!`;
-            } else {
-                document.getElementById("loading").classList.add("hidden");
-                document.getElementById("signed-out").classList.remove("hidden");
-                Clerk.mountSignIn(document.getElementById("clerk-sign-in"), {
-                    appearance: {
-                        variables: { colorPrimary: '#0F9E99' }
-                    }
-                });
+        window.addEventListener("load", async function () {
+            try {
+                // Verify Clerk is loaded
+                if (!window.Clerk) {
+                    throw new Error("Clerk script not loaded from CDN.");
+                }
+
+                await Clerk.load();
+
+                if (Clerk.user) {
+                    // === SCENARIO 1: ALREADY LOGGED IN ===
+                    // If the user is already logged in, send them to the tool immediately
+                    document.getElementById("loading").innerHTML = '<div class="loader"></div><p>Access Granted. Redirecting...</p>';
+                    window.location.href = REDIRECT_URL;
+                } else {
+                    // === SCENARIO 2: NEEDS TO LOG IN ===
+                    document.getElementById("loading").classList.add("hidden");
+                    document.getElementById("signed-out").classList.remove("hidden");
+                    
+                    Clerk.mountSignIn(document.getElementById("clerk-sign-in"), {
+                        afterSignInUrl: REDIRECT_URL,
+                        afterSignUpUrl: REDIRECT_URL,
+                        appearance: {
+                            variables: { colorPrimary: '#0F9E99' }
+                        }
+                    });
+                }
+            } catch (err) {
+                console.error("Clerk initialization error:", err);
+                const loadingDiv = document.getElementById("loading");
+                loadingDiv.innerHTML = `
+                    <div class="error-message">
+                        <strong>Security Initialization Failed</strong><br><br>
+                        This usually happens in <strong>Preview Windows</strong> or <strong>Local Files</strong> because Clerk blocks them for security.<br><br>
+                        <strong>To fix this:</strong><br>
+                        1. Upload this file to GitHub Pages.<br>
+                        2. Open the real website URL (e.g., yourname.github.io).
+                    </div>
+                `;
             }
         });
     </script>
