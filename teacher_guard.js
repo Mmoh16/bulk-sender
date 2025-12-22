@@ -1,7 +1,7 @@
 // ============================================
 // TEACHER SECURITY CONFIGURATION
 // ============================================
-const TEACHER_EMAILS = ["your-email@gmail.com"]; // <--- CHANGE THIS TO YOUR EMAIL
+const TEACHER_EMAILS = ["mm9019783@gmail.com"]; // <--- CHANGE THIS TO YOUR EMAIL
 const STUDENT_VIEW_URL = "https://mmoh16.github.io/bulk-sender/data-View.html";
 const LOGIN_PAGE_URL = "https://mmoh16.github.io/bulk-sender/";
 const CLERK_KEY = "pk_test_cHJlcGFyZWQtZmFsY29uLTU2LmNsZXJrLmFjY291bnRzLmRldiQ";
