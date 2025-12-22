@@ -4,7 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Teacher Dashboard</title>
-    <!-- Removed external FontAwesome link for speed -->
+        <script
+        async
+        crossorigin="anonymous"
+        data-clerk-publishable-key="pk_test_cHJlcGFyZWQtZmFsY29uLTU2LmNsZXJrLmFjY291bnRzLmRldiQ"
+        src="https://prepared-falcon-56.clerk.accounts.dev/npm/@clerk/clerk-js@5/dist/clerk.browser.js"
+        type="text/javascript">
+    </script>
     <style>
         :root {
             --primary-color: #0F9E99;
@@ -421,7 +427,7 @@
         }
     </style>
 </head>
-<body>
+<body style="display: none;">
     
     <!-- LOGIN OVERLAY -->
     <div id="loginOverlay">
@@ -664,6 +670,42 @@
             .catch(error => { showStatus('sessionStatusMsg', "Network Error. Check connection.", "error"); })
             .finally(() => { btn.innerHTML = originalContent; btn.disabled = false; });
         }
+    </script>
+        <!-- 3. SECURITY: Gatekeeper Logic -->
+    <script>
+        // The URL to kick intruders to
+        const LOGIN_PAGE_URL = "https://mmoh16.github.io/bulk-sender/";
+
+        window.addEventListener("load", async function () {
+            try {
+                // Check Clerk
+                if (!window.Clerk) {
+                    console.error("Clerk not loaded");
+                    return; // Fail gracefully or redirect
+                }
+
+                await Clerk.load();
+
+                if (Clerk.user) {
+                    // === SUCCESS ===
+                    // User is logged in. Reveal the page.
+                    document.body.style.display = "block";
+                    
+                    // Initialize your app logic only AFTER confirming login
+                    if (typeof initApp === "function") {
+                        initApp();
+                    }
+                } else {
+                    // === FAILED ===
+                    // User is NOT logged in. Redirect to login.
+                    window.location.href = LOGIN_PAGE_URL;
+                }
+            } catch (err) {
+                console.error("Security check failed", err);
+                // Fallback: Redirect to login if anything breaks
+                window.location.href = LOGIN_PAGE_URL;
+            }
+        });
     </script>
 </body>
 </html>
