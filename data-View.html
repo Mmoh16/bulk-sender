@@ -48,6 +48,10 @@
         
         .text-accent { color: var(--accent-green); }
 
+        /* Modal Animation */
+        .modal { transition: opacity 0.25s ease; }
+        .modal-active { overflow-x: hidden; overflow-y: visible !important; }
+
         /* Note: Menu Styles are now inside navbar.js */
     </style>
 </head>
@@ -190,15 +194,53 @@
         </div>
     </div>
 
+    <!-- Image Popup Modal -->
+    <div id="imageModal" class="modal opacity-0 pointer-events-none fixed inset-0 flex items-center justify-center z-50">
+        <div class="modal-overlay absolute inset-0 bg-gray-900 opacity-50"></div>
+        
+        <div class="modal-container bg-white w-11/12 md:max-w-md mx-auto rounded-xl shadow-2xl z-50 overflow-y-auto transform scale-95 transition-transform duration-300">
+            
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center px-6 py-4 border-b border-gray-100">
+                <h3 class="font-bold text-lg text-gray-800">Student Details</h3>
+                <div class="cursor-pointer z-50" onclick="closeModal()">
+                    <i class="fa-solid fa-xmark text-gray-500 hover:text-gray-700 text-xl"></i>
+                </div>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="px-6 py-6 text-center">
+                <div class="mb-2 text-sm text-gray-500 uppercase tracking-wider font-semibold">Student ID</div>
+                <div id="modalStudentId" class="text-2xl font-bold text-[var(--primary-color)] mb-6 font-mono bg-gray-50 inline-block px-4 py-1 rounded-lg">--</div>
+                
+                <div class="relative w-full aspect-square bg-gray-100 rounded-lg overflow-hidden border border-gray-200 shadow-inner flex items-center justify-center">
+                    <img id="modalImage" src="" alt="Student" class="object-cover w-full h-full hidden">
+                    <div id="modalImagePlaceholder" class="text-gray-400 flex flex-col items-center">
+                        <i class="fa-regular fa-image text-4xl mb-2"></i>
+                        <span class="text-sm">No image available</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="bg-gray-50 px-6 py-4 flex justify-end">
+                <button onclick="closeModal()" class="bg-[var(--primary-color)] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[var(--primary-hover)] transition shadow-sm">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Link to your local navbar.js file -->
     <script src="navbar.js"></script>
 
     <script>
         // ==========================================
-        // CONFIGURATION: N8N URLS
+        // CONFIGURATION
         // ==========================================
         const GET_WEBHOOK_URL = 'https://api.mark-attendance.com/webhook/dashboard-get'; 
         const POST_WEBHOOK_URL = 'https://api.mark-attendance.com/webhook/dashboard-post'; 
+        const DEFAULT_IMAGE_URL = 'https://drive.google.com/file/d/1XHdWjv1CwvYno0nqSH9LaGdtVomp5dKL/view?usp=drivesdk';
         // ==========================================
 
         let students = []; 
@@ -283,7 +325,9 @@
                         parentPhone: item["Parent Phone"] || "",
                         paid: parseFloat(item["Paid"]) || 0,
                         remaining: parseFloat(item["Remaining"]) || 0,
-                        joinedDate: joinedDate
+                        joinedDate: joinedDate,
+                        // Image Handling: Try specific fields, fallback to default
+                        imageUrl: item["Image"] || item["imageUrl"] || item["link"] || DEFAULT_IMAGE_URL
                     };
                 });
                 
@@ -485,6 +529,9 @@
                     dateDisplay = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
                 }
 
+                // Prepare Image URL
+                const imgUrlSafe = s.imageUrl ? s.imageUrl.replace(/"/g, '&quot;') : '';
+
                 const card = document.createElement('div');
                 card.className = `bg-[var(--card-bg)] rounded-xl card-shadow p-5 border-l-4 ${borderColor}`;
                 
@@ -521,6 +568,10 @@
                     </div>
                     
                     <div class="mt-3 grid grid-cols-2 gap-2">
+                         <button onclick="openModal('${s.id}', '${imgUrlSafe}')" class="col-span-2 flex items-center justify-center bg-indigo-50 text-indigo-600 py-2 rounded text-sm hover:bg-indigo-100 transition border border-indigo-200 mb-1">
+                            <i class="fas fa-image mr-2"></i> View Image
+                         </button>
+
                          <a href="https://wa.me/${sPhone.replace(/^0/, '20')}" target="_blank" class="flex items-center justify-center bg-[#25D366]/10 text-[#25D366] py-2 rounded text-sm hover:bg-[#25D366]/20 transition border border-[#25D366]/20"><i class="fab fa-whatsapp text-lg mr-2"></i> Student</a>
                          <a href="https://wa.me/${pPhone.replace(/^0/, '20')}" target="_blank" class="flex items-center justify-center bg-[#25D366]/10 text-[#25D366] py-2 rounded text-sm hover:bg-[#25D366]/20 transition border border-[#25D366]/20"><i class="fab fa-whatsapp text-lg mr-2"></i> Parent</a>
                          
@@ -535,6 +586,90 @@
                 grid.appendChild(card);
             });
         }
+
+        // --- MODAL LOGIC ---
+        function openModal(id, imageUrl) {
+            const modal = document.getElementById('imageModal');
+            const modalId = document.getElementById('modalStudentId');
+            const modalImg = document.getElementById('modalImage');
+            const modalPlaceholder = document.getElementById('modalImagePlaceholder');
+            
+            // Set ID
+            modalId.textContent = id;
+
+            // Process URL (Convert Google Drive view links to direct image links)
+            const processedUrl = convertDriveLink(imageUrl);
+            
+            // Handle Image Loading
+            modalImg.onload = () => {
+                modalImg.classList.remove('hidden');
+                modalPlaceholder.classList.add('hidden');
+            };
+            modalImg.onerror = () => {
+                modalImg.classList.add('hidden');
+                modalPlaceholder.classList.remove('hidden');
+            };
+
+            // Reset and set src
+            modalImg.classList.add('hidden');
+            modalPlaceholder.classList.remove('hidden');
+            modalImg.src = processedUrl;
+
+            // Animation classes
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            document.body.classList.add('modal-active');
+            
+            // Scale animation for container
+            const container = modal.querySelector('.modal-container');
+            setTimeout(() => {
+                container.classList.remove('scale-95');
+                container.classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('imageModal');
+            const container = modal.querySelector('.modal-container');
+
+            // Animation out
+            container.classList.remove('scale-100');
+            container.classList.add('scale-95');
+            
+            modal.classList.add('opacity-0');
+            
+            setTimeout(() => {
+                modal.classList.add('pointer-events-none');
+                document.body.classList.remove('modal-active');
+                // Reset src to stop loading/prevent flash of old image next time
+                document.getElementById('modalImage').src = "";
+            }, 300);
+        }
+
+        // Helper: Convert Google Drive "View" links to "Direct/Preview" links
+        function convertDriveLink(url) {
+            if (!url) return '';
+            
+            // Regex to find Google Drive ID
+            const idPattern = /[-\w]{25,}/;
+            const match = url.match(idPattern);
+            
+            if (match && (url.includes('drive.google.com') || url.includes('docs.google.com'))) {
+                return `https://drive.google.com/uc?export=view&id=${match[0]}`;
+            }
+            
+            return url;
+        }
+
+        // Close modal when clicking outside
+        document.querySelector('.modal-overlay').addEventListener('click', closeModal);
+        
+        // Close on Escape key
+        document.onkeydown = function(evt) {
+            evt = evt || window.event;
+            if (evt.keyCode == 27) {
+                closeModal();
+            }
+        };
     </script>
         <!-- 3. SECURITY: Gatekeeper Logic -->
     <script>
