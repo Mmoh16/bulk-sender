@@ -79,38 +79,50 @@
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 
                 <!-- Search -->
-                <div class="relative">
+                <div class="relative group">
                     <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
                         <i class="fas fa-search"></i>
                     </span>
                     <input type="text" id="searchInput" placeholder="Search..." 
-                        class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] focus:border-transparent transition bg-gray-50">
+                        class="w-full pl-10 pr-10 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] focus:border-transparent transition bg-gray-50">
+                    <!-- Clear Button -->
+                    <button id="searchInputClear" onclick="clearInput('searchInput')" class="hidden absolute inset-y-0 right-0 px-3 flex items-center text-gray-400 hover:text-[var(--error-red)] transition">
+                        <i class="fas fa-times-circle"></i>
+                    </button>
                 </div>
 
                 <!-- Payment Filter -->
-                <div class="relative">
+                <div class="relative group">
                     <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
                         <i class="fas fa-money-bill-wave"></i>
                     </span>
-                    <select id="filterInput" class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] focus:border-transparent bg-gray-50 appearance-none cursor-pointer">
+                    <select id="filterInput" class="w-full pl-10 pr-10 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] focus:border-transparent bg-gray-50 appearance-none cursor-pointer">
                         <option value="all">All Payments</option>
                         <option value="fully_paid">Fully Paid</option>
                         <option value="has_remaining">Unpaid</option>
                     </select>
+                     <!-- Clear Button -->
+                     <button id="filterInputClear" onclick="clearInput('filterInput', 'all')" class="hidden absolute inset-y-0 right-0 px-3 flex items-center text-gray-400 hover:text-[var(--error-red)] transition bg-transparent z-10">
+                        <i class="fas fa-times-circle"></i>
+                    </button>
                 </div>
 
                 <!-- Date Filter (NEW) -->
-                <div class="relative">
+                <div class="relative group">
                     <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
                         <i class="fas fa-calendar-day"></i>
                     </span>
-                    <select id="dateFilterInput" class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] focus:border-transparent bg-gray-50 appearance-none cursor-pointer">
+                    <select id="dateFilterInput" class="w-full pl-10 pr-10 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] focus:border-transparent bg-gray-50 appearance-none cursor-pointer">
                         <option value="all">All Dates</option>
                         <option value="today">Joined Today</option>
                         <option value="yesterday">Joined Yesterday</option>
                         <option value="this_week">This Week</option>
                         <option value="this_month">This Month</option>
                     </select>
+                    <!-- Clear Button -->
+                    <button id="dateFilterInputClear" onclick="clearInput('dateFilterInput', 'all')" class="hidden absolute inset-y-0 right-0 px-3 flex items-center text-gray-400 hover:text-[var(--error-red)] transition bg-transparent z-10">
+                        <i class="fas fa-times-circle"></i>
+                    </button>
                 </div>
 
                 <!-- Sort -->
@@ -358,6 +370,12 @@
             document.getElementById('addModal').classList.remove('hidden');
         }
 
+        function clearInput(targetId, defaultVal = '') {
+            const target = document.getElementById(targetId);
+            target.value = defaultVal;
+            renderStudents();
+        }
+
         function renderStudents() {
             let filtered = students;
 
@@ -424,6 +442,12 @@
                 if (sortVal === 'paid_desc') return (b.paid || 0) - (a.paid || 0);
                 return 0;
             });
+
+            // Update Clear Buttons Visibility
+            document.getElementById('searchInputClear').classList.toggle('hidden', searchInput.value === '');
+            document.getElementById('filterInputClear').classList.toggle('hidden', filterInput.value === 'all');
+            document.getElementById('dateFilterInputClear').classList.toggle('hidden', dateFilterInput.value === 'all');
+
 
             // Update Counts
             countDisplay.innerText = filtered.length;
