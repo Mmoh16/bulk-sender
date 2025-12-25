@@ -3,7 +3,16 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Hw Marks</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HW Sender</title>
+<!-- Added FontAwesome for the paper plane icon -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<script>
+  function markAsSent(i) {
+    const cb = document.getElementById('checkbox_' + i);
+    if (cb) cb.checked = true;
+  }
+</script>
 <style>
 :root {
   --primary-color: #0F9E99; /* Tropical Teal */
@@ -13,17 +22,49 @@
 }
 
 body { 
-  font-family: Arial, sans-serif; 
+  font-family: system-ui, -apple-system, sans-serif;
   background: var(--background-color); 
-  padding: 20px; 
+  margin: 0;
+  padding: 0;
 }
 
-/* --- TABLE CONTAINER (Rounded & Wide) --- */
+/* --- NEW HEADER STYLES --- */
+.app-header {
+    background-color: #0F9E99;
+    color: white;
+    padding: 1rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+}
+
+.header-container {
+    max-width: 1024px; /* container max-w-5xl equivalent */
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-title {
+    font-size: 1.25rem; /* text-xl */
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+}
+
+/* --- TABLE SECTION --- */
+.content-container {
+    max-width: 1024px;
+    margin: 20px auto;
+    padding: 0 1rem;
+}
+
 .table-section {
-    width: 95%;           /* Large Width */
-    margin: 20px auto;    /* Center the section */
-    border-radius: 15px; /* Rounded Corners */
-    overflow: hidden;    /* Clips the table corners */
+    width: 100%;
+    border-radius: 15px;
+    overflow: hidden;
     box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     background: white;
 }
@@ -37,13 +78,12 @@ table {
 tr:nth-child(even) { background-color: var(--row-even-color); }
 tr:nth-child(odd) { background-color: var(--row-odd-color); }
 
-h2 { color: var(--primary-color); }
-
 th, td { 
-  padding: 10px; 
+  padding: 12px 10px; 
   border: 1px solid #ddd; 
   text-align: left; 
 }
+
 th { 
   background-color: var(--primary-color); 
   color: white;
@@ -58,72 +98,75 @@ th:nth-child(1), td:nth-child(1) {
     text-align: center;   /* Centers the link */
 }
 
-/* 2. Done (Moved here) */
+/* 2. Done */
 th:nth-child(2), td:nth-child(2) { 
     width: 1%;            /* Forces column to be as small as content */
     white-space: nowrap;  /* Prevents text from wrapping */
     text-align: center;   /* Centers the link */
 }
 
-/* 3. Send (Shrunk to fit "Send") */
+/* 3. Send (Now takes remaining space) */
 th:nth-child(3), td:nth-child(3) { 
     width: 1%;            /* Forces column to be as small as content */
     white-space: nowrap;  /* Prevents text from wrapping */
     text-align: center;   /* Centers the link */
 }
 
-/* 4. Name (Takes remaining space) */
+/* 4. Name (Fixed smaller width) */
 th:nth-child(4), td:nth-child(4) { 
     width: auto;          /* Expands to fill the rest of the table */
 }
 
 input[type="checkbox"] { 
-  width: 15px;
-  height: 15px;
+  width: 18px;
+  height: 18px;
   cursor: pointer; 
   vertical-align: middle;
+  accent-color: var(--primary-color);
 }
 
 a { 
   color: var(--primary-color); 
   font-weight: bold; 
   text-decoration: none; 
+  display: inline-block;
+  padding: 5px 10px;
 }
-a:hover { text-decoration: underline; }
+a:hover { 
+    background-color: #f0fdf4;
+    border-radius: 4px;
+    text-decoration: none; 
+}
 </style>
 </head>
 <body>
 
-    <!-- MATCHING HEADER -->
-    <header class="bg-[#0F9E99] text-white p-4 shadow-md sticky top-0 z-50">
-        <div class="container mx-auto flex justify-between items-center">
-            <h1 class="text-xl font-bold"><i class="fas fa-paper-plane mr-2"></i>HW Sender</h1>
-            <div class="flex gap-2 items-center">
-                <!-- Main Menu Container -->
-                <div id="main-menu-container"></div>
-            </div>
+<!-- HEADER -->
+<header class="app-header">
+    <div class="header-container">
+        <h1 class="header-title">
+            <i class="fas fa-paper-plane" style="margin-right: 0.5rem;"></i>
+            HW Sender
+        </h1>
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <!-- Main Menu Container -->
+            <div id="main-menu-container"></div>
         </div>
-    </header>
+    </div>
+</header>
 
-    <div class="container mx-auto p-4 max-w-5xl">
+<!-- MAIN CONTENT -->
+<div class="content-container">
+    <div class="table-section">
+        <table>
+        <!-- Header Order: No. | Done | Message Link | Name -->
+        <tr>
+            <th>No.</th>
+            <th>Done</th>
+            <th>Message Link</th>
+            <th>Name</th>
+        </tr>
         
-        <!-- CONTROL PANEL -->
-        <div class="controls">
-            <button class="btn btn-start" onclick="startAutoSend()">
-                <i class="fas fa-play mr-2"></i>Start Auto-Send (8s)
-            </button>
-            <button class="btn btn-stop" onclick="stopAutoSend()">
-                <i class="fas fa-stop mr-2"></i>Stop
-            </button>
-            <div class="status-display" id="statusText">Status: Ready</div>
-        </div>
-
-<!-- Wrapped Table in a Section for Rounded Corners -->
-<div class="table-section">
-    <table>
-    <!-- UPDATED HEADER ORDER -->
-    <tr><th>No.</th><th>Done</th><th>Send</th><th>Name</th></tr>
-    
     <tr id="row_0">
       <td>1</td>
       <td><input type="checkbox" id="checkbox_0" name="sent_0" /></td>
@@ -2686,10 +2729,10 @@ a:hover { text-decoration: underline; }
       <td>Ismail Mahmoud</td>
     </tr>
   
-    </table>
+        </table>
+    </div>
 </div>
 
-<!-- 2. ADD NAVBAR SCRIPT HERE -->
 <script src="navbar.js"></script>
 
 </body>
