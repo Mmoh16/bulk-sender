@@ -7,17 +7,20 @@
 
     <!-- === ONESIGNAL NOTIFICATIONS === -->
     <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-    <script>
-      window.OneSignalDeferred = window.OneSignalDeferred || [];
-      OneSignalDeferred.push(async function(OneSignal) {
-        await OneSignal.init({
-          appId: "b58e7b17-b719-486a-9d7b-5cb98d8533c3",
-          path: "/Student-Manger/", 
-          serviceWorkerParam: { scope: "/Student-Manger/" },
-        });
-      });
-    </script>
+<script>
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+  window.OneSignalDeferred.push(async function(OneSignal) {
+    await OneSignal.init({
+      appId: "b58e7b17-b719-486a-9d7b-5cb98d8533c3",
+      path: "/Student-Manger/", 
+      serviceWorkerParam: { scope: "/Student-Manger/" },
+    });
 
+    // ✅ This adds the tag automatically when they subscribe/visit
+    // Key: "course" | Value: "EST1 Adv March"
+    OneSignal.User.addTag("course", "EST1 Adv March");
+  });
+</script>
     <!-- === CLERK AUTH === -->
     <script
         async
