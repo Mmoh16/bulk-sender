@@ -9,18 +9,20 @@
     <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 <script>
   window.OneSignalDeferred = window.OneSignalDeferred || [];
-  window.OneSignalDeferred.push(async function(OneSignal) {
+  OneSignalDeferred.push(async function(OneSignal) {
     await OneSignal.init({
       appId: "b58e7b17-b719-486a-9d7b-5cb98d8533c3",
-      path: "/Student-Manger/", 
-      serviceWorkerParam: { scope: "/Student-Manger/" },
+      safari_web_id: "web.onesignal.auto.63402484-8898-406e-a342-9904e2230412", // Optional but good for Apple
+      notifyButton: {
+        enable: true, /* This shows a bell icon to easily test subscription */
+      },
+      // THIS IS THE FIX:
+      path: "/Student-Manger/",
     });
-
-    // ✅ This adds the tag automatically when they subscribe/visit
-    // Key: "course" | Value: "EST1 Adv March"
-    OneSignal.User.addTag("course", "EST1 Adv March");
+  OneSignal.User.addTag("course", "EST1 Adv March");
   });
 </script>
+
     <!-- === CLERK AUTH === -->
     <script
         async
