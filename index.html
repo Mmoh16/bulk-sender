@@ -3,12 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Data Dashboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <title>Secure Login Portal</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
-        
         :root {
             --primary-color: #0F9E99;
             --primary-hover: #0b7a76;
@@ -16,494 +12,111 @@
             --card-bg: #FFFFFF;
             --text-color: #333333;
             --accent-green: #25D366;
-            --error-red: #d32f2f;
         }
-
-        body { 
-            font-family: 'Inter', sans-serif; 
-            background-color: var(--bg-color); 
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
             color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
         }
+        .container {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+        .hidden { display: none; }
+        
+        h1 { color: var(--primary-color); margin-bottom: 1rem; }
+        p { color: var(--text-color); line-height: 1.5; }
+        
+        .btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        .btn:hover { background-color: var(--primary-hover); }
 
-        .card-shadow { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); }
-        .loader { border: 4px solid #e5e7eb; border-top: 4px solid var(--primary-color); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 20px auto; }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        /* Custom Utility Classes for Dynamic Colors */
-        .bg-primary { background-color: var(--primary-color); }
-        .bg-primary-hover:hover { background-color: var(--primary-hover); }
-        .text-primary { color: var(--primary-color); }
-        .border-primary { border-color: var(--primary-color); }
-        .focus-ring-primary:focus { --tw-ring-color: var(--primary-color); }
-        
-        .text-error { color: var(--error-red); }
-        .border-error { border-color: var(--error-red); }
-        
-        .text-accent { color: var(--accent-green); }
-
-        /* Note: Menu Styles are now inside navbar.js */
     </style>
+
+    <!-- YOUR OFFICIAL CLERK SCRIPT -->
+    <script
+        async
+        crossorigin="anonymous"
+        data-clerk-publishable-key="pk_test_cHJlcGFyZWQtZmFsY29uLTU2LmNsZXJrLmFjY291bnRzLmRldiQ"
+        src="https://prepared-falcon-56.clerk.accounts.dev/npm/@clerk/clerk-js@5/dist/clerk.browser.js"
+        type="text/javascript">
+    </script>
 </head>
 <body>
 
-    <!-- Header -->
-    <header class="bg-[var(--primary-color)] text-white p-4 shadow-md sticky top-0 z-10">
-        <div class="container mx-auto flex justify-between items-center">
-            <h1 class="text-xl font-bold"><i class="fas fa-user-graduate mr-2"></i>Student Tracker</h1>
-            <div class="flex gap-2 items-center">
-                <button onclick="fetchStudents()" class="bg-white/20 text-white px-3 py-2 rounded-full font-bold text-sm hover:bg-white/30 transition backdrop-blur-sm">
-                    <i class="fas fa-sync-alt"></i>
-                </button>
-                <button onclick="openAddModal()" class="bg-white text-[var(--primary-color)] px-4 py-2 rounded-full font-bold text-sm hover:bg-gray-100 transition shadow-sm">
-                    + Add New
-                </button>
-                
-                <!-- MAIN MENU CONTAINER (Content loaded from navbar.js) -->
-                <div id="main-menu-container"></div>
-            
-            </div>
-        </div>
-    </header>
-
-    <div class="container mx-auto p-4 max-w-5xl">
-        
-        <!-- Controls Section -->
-        <div class="bg-[var(--card-bg)] p-4 rounded-xl card-shadow mb-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                
-                <!-- Search -->
-                <div class="relative">
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
-                        <i class="fas fa-search"></i>
-                    </span>
-                    <input type="text" id="searchInput" placeholder="Search..." 
-                        class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] focus:border-transparent transition bg-gray-50">
-                </div>
-
-                <!-- Payment Filter -->
-                <div class="relative">
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
-                        <i class="fas fa-money-bill-wave"></i>
-                    </span>
-                    <select id="filterInput" class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] focus:border-transparent bg-gray-50 appearance-none cursor-pointer">
-                        <option value="all">All Payments</option>
-                        <option value="fully_paid">Fully Paid</option>
-                        <option value="has_remaining">Unpaid</option>
-                    </select>
-                </div>
-
-                <!-- Date Filter (NEW) -->
-                <div class="relative">
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
-                        <i class="fas fa-calendar-day"></i>
-                    </span>
-                    <select id="dateFilterInput" class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] focus:border-transparent bg-gray-50 appearance-none cursor-pointer">
-                        <option value="all">All Dates</option>
-                        <option value="today">Joined Today</option>
-                        <option value="yesterday">Joined Yesterday</option>
-                        <option value="this_week">This Week</option>
-                        <option value="this_month">This Month</option>
-                    </select>
-                </div>
-
-                <!-- Sort -->
-                <div class="relative">
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
-                        <i class="fas fa-sort"></i>
-                    </span>
-                    <select id="sortInput" class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] focus:border-transparent bg-gray-50 appearance-none cursor-pointer">
-                        <option value="name_asc">Name (A-Z)</option>
-                        <option value="date_desc">Newest First</option>
-                        <option value="remaining_desc">Highest Debt</option>
-                        <option value="paid_desc">Most Paid</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-
-        <!-- Stats Summary -->
-        <div class="flex justify-between items-center mb-4 px-2">
-            <p class="text-gray-500 text-sm">Showing <span id="countDisplay" class="font-bold text-[var(--text-color)]">0</span> students</p>
-            <p class="text-gray-500 text-sm">Total Debt: <span id="totalDebtDisplay" class="font-bold text-[var(--error-red)]">$0</span></p>
-        </div>
-
-        <!-- Loading State -->
-        <div id="loadingState" class="hidden text-center py-4">
+    <div class="container">
+        <!-- Loading -->
+        <div id="loading">
             <div class="loader"></div>
-            <p class="text-gray-500 text-sm">Syncing with Notion...</p>
+            <p>Loading security...</p>
         </div>
 
-        <!-- Grid Display -->
-        <div id="studentGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <!-- Cards will be injected here via JS -->
+        <!-- Login Box -->
+        <div id="signed-out" class="hidden">
+            <h1>Welcome</h1>
+            <p>Please sign in to continue.</p>
+            <div id="clerk-sign-in"></div>
         </div>
 
-        <!-- Empty State (Hidden by default) -->
-        <div id="emptyState" class="hidden text-center py-12">
-            <div class="text-gray-300 text-6xl mb-4"><i class="fas fa-folder-open"></i></div>
-            <p class="text-gray-500 text-lg">No students found matching your criteria.</p>
-        </div>
-    </div>
-
-    <!-- Add/Edit Modal -->
-    <div id="addModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-        <div class="bg-[var(--card-bg)] rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
-            <div class="bg-[var(--primary-color)] p-4 flex justify-between items-center text-white">
-                <h3 id="modalTitle" class="font-bold">Add Student to Notion</h3>
-                <button onclick="document.getElementById('addModal').classList.add('hidden')" class="hover:text-gray-200 transition"><i class="fas fa-times"></i></button>
-            </div>
-            <form id="addForm" class="p-4 space-y-3">
-                <!-- Hidden ID field for updates -->
-                <input type="hidden" id="studentId">
-                
-                <input type="text" id="newName" placeholder="Full Name" required class="w-full border border-gray-200 p-2 rounded focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]">
-                <input type="email" id="newEmail" placeholder="Email" class="w-full border border-gray-200 p-2 rounded focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]">
-                <div class="grid grid-cols-2 gap-2">
-                    <input type="tel" id="newStudentPhone" placeholder="Student Phone" required class="w-full border border-gray-200 p-2 rounded focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]">
-                    <input type="tel" id="newParentPhone" placeholder="Parent Phone" required class="w-full border border-gray-200 p-2 rounded focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]">
-                </div>
-                <div class="grid grid-cols-2 gap-2">
-                    <input type="number" id="newPaid" placeholder="Paid Amount ($)" required class="w-full border border-gray-200 p-2 rounded focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]">
-                    <input type="number" id="newRemaining" placeholder="Remaining ($)" required class="w-full border border-gray-200 p-2 rounded focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]">
-                </div>
-                <button type="submit" id="submitBtn" class="w-full bg-[var(--primary-color)] text-white py-2 rounded font-bold hover:bg-[var(--primary-hover)] mt-2 transition shadow-md">Save Student</button>
-            </form>
+        <!-- Secret Content -->
+        <div id="signed-in" class="hidden">
+            <h1>🔒 Access Granted</h1>
+            <p id="welcome-message">Welcome!</p>
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+            <p style="background: #ecfdf5; color: #047857; padding: 15px; border-radius: 8px;">
+                <strong>Secret Data:</strong><br>
+                You are securely logged in.
+            </p>
+            <button class="btn" onclick="Clerk.signOut()">Sign Out</button>
         </div>
     </div>
-
-    <!-- Link to your local navbar.js file -->
-    <script src="navbar.js"></script>
 
     <script>
-        // ==========================================
-        // CONFIGURATION: N8N URLS
-        // ==========================================
-        const GET_WEBHOOK_URL = 'https://api.mark-attendance.com/webhook/dashboard-get'; 
-        const POST_WEBHOOK_URL = 'https://api.mark-attendance.com/webhook/dashboard-post'; 
-        // ==========================================
+        window.addEventListener("load", async function () {
+            await Clerk.load();
 
-        let students = []; 
-
-        // DOM Elements
-        const grid = document.getElementById('studentGrid');
-        const searchInput = document.getElementById('searchInput');
-        const filterInput = document.getElementById('filterInput');
-        const dateFilterInput = document.getElementById('dateFilterInput');
-        const sortInput = document.getElementById('sortInput');
-        const countDisplay = document.getElementById('countDisplay');
-        const totalDebtDisplay = document.getElementById('totalDebtDisplay');
-        const emptyState = document.getElementById('emptyState');
-        const loadingState = document.getElementById('loadingState');
-        const addForm = document.getElementById('addForm');
-        const submitBtn = document.getElementById('submitBtn');
-        const modalTitle = document.getElementById('modalTitle');
-
-        // Initial Load when DOM is ready
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log("App initialized");
-            fetchStudents();
-        });
-
-        // Event Listeners
-        searchInput.addEventListener('input', renderStudents);
-        filterInput.addEventListener('change', renderStudents);
-        dateFilterInput.addEventListener('change', renderStudents);
-        sortInput.addEventListener('change', renderStudents);
-        
-        // --- API FUNCTIONS ---
-
-        async function fetchStudents() {
-            console.log("Fetching students from:", GET_WEBHOOK_URL);
-            
-            loadingState.classList.remove('hidden');
-            grid.innerHTML = ''; 
-            emptyState.classList.add('hidden');
-
-            try {
-                const response = await fetch(GET_WEBHOOK_URL);
-                if (!response.ok) throw new Error('Network response was not ok: ' + response.statusText);
-                
-                const rawData = await response.json();
-                console.log("Data received:", rawData);
-
-                // Robust parsing
-                let rawList = [];
-                if (Array.isArray(rawData)) {
-                    rawList = rawData;
-                } else if (rawData.data && Array.isArray(rawData.data)) {
-                    rawList = rawData.data;
-                } else if (rawData.body && Array.isArray(rawData.body)) {
-                    rawList = rawData.body;
-                } else {
-                    console.warn("Unexpected data format", rawData);
-                }
-                
-                students = rawList.map((item, index) => {
-                    // Parse Date Field
-                    let joinedDate = null;
-                    try {
-                        const rawDate = item["date"];
-                        if (rawDate) {
-                            if (typeof rawDate === 'string' && rawDate.trim().startsWith('{')) {
-                                const parsed = JSON.parse(rawDate);
-                                joinedDate = parsed.start; // Notion often returns { start: "ISO...", ... }
-                            } else if (typeof rawDate === 'object') {
-                                joinedDate = rawDate.start || rawDate;
-                            } else {
-                                joinedDate = rawDate;
-                            }
-                        }
-                    } catch (e) { console.warn("Date parse error for item", index, e); }
-
-                    return {
-                        // Use the real ID from Notion if available, otherwise fallback to index
-                        id: item["id"] || item["ID"] || index, 
-                        name: item["Name"] || "No Name",
-                        email: item["Email"] || "",
-                        studentPhone: item["Student Phone"] || "",
-                        parentPhone: item["Parent Phone"] || "",
-                        paid: parseFloat(item["Paid"]) || 0,
-                        remaining: parseFloat(item["Remaining"]) || 0,
-                        joinedDate: joinedDate
-                    };
-                });
-                
-                renderStudents();
-            } catch (error) {
-                console.error("Error fetching data:", error);
-                grid.innerHTML = `
-                    <div class="col-span-full text-center p-8 bg-red-50 rounded-xl border border-red-200">
-                        <i class="fas fa-exclamation-circle text-4xl text-[var(--error-red)] mb-3"></i>
-                        <h3 class="text-lg font-bold text-[var(--error-red)]">Error loading data</h3>
-                        <p class="text-sm text-gray-600 mb-4">${error.message}</p>
-                        <button onclick="fetchStudents()" class="px-4 py-2 bg-[var(--primary-color)] text-white rounded-lg hover:bg-[var(--primary-hover)]">
-                            Try Again
-                        </button>
-                    </div>`;
-            } finally {
-                loadingState.classList.add('hidden');
-            }
-        }
-
-        // Add/Edit Form Handler
-        addForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const originalBtnText = submitBtn.innerText;
-            submitBtn.innerText = "Saving...";
-            submitBtn.disabled = true;
-
-            const newStudent = {
-                // Include the ID so N8N knows whether to Update or Create
-                "id": document.getElementById('studentId').value,
-                "Name": document.getElementById('newName').value,
-                "Email": document.getElementById('newEmail').value,
-                "Student Phone": document.getElementById('newStudentPhone').value,
-                "Parent Phone": document.getElementById('newParentPhone').value,
-                "Paid": parseFloat(document.getElementById('newPaid').value) || 0,
-                "Remaining": parseFloat(document.getElementById('newRemaining').value) || 0
-            };
-
-            try {
-                const response = await fetch(POST_WEBHOOK_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(newStudent)
-                });
-                
-                if (!response.ok) throw new Error('Failed to save to Notion via N8N');
-                
-                await fetchStudents();
-                document.getElementById('addModal').classList.add('hidden');
-                addForm.reset();
-            } catch (error) {
-                alert("Error saving: " + error.message);
-            } finally {
-                submitBtn.innerText = originalBtnText;
-                submitBtn.disabled = false;
-            }
-        });
-
-        // --- UI FUNCTIONS ---
-
-        function openAddModal() {
-            addForm.reset();
-            document.getElementById('studentId').value = ''; // Clear ID for new entries
-            modalTitle.innerText = "Add Student to Notion";
-            submitBtn.innerText = "Save Student";
-            document.getElementById('addModal').classList.remove('hidden');
-        }
-
-        function openEditModal(index) {
-            const student = students[index];
-            if(!student) return;
-
-            document.getElementById('studentId').value = student.id;
-            document.getElementById('newName').value = student.name;
-            document.getElementById('newEmail').value = student.email;
-            document.getElementById('newStudentPhone').value = student.studentPhone;
-            document.getElementById('newParentPhone').value = student.parentPhone;
-            document.getElementById('newPaid').value = student.paid;
-            document.getElementById('newRemaining').value = student.remaining;
-
-            modalTitle.innerText = "Edit Student";
-            submitBtn.innerText = "Update Student";
-            document.getElementById('addModal').classList.remove('hidden');
-        }
-
-        function renderStudents() {
-            let filtered = students;
-
-            // 1. Text Search
-            const term = searchInput.value.toLowerCase();
-            filtered = filtered.filter(s => 
-                (s.name && s.name.toLowerCase().includes(term)) || 
-                (s.email && s.email.toLowerCase().includes(term)) ||
-                (s.studentPhone && s.studentPhone.includes(term))
-            );
-
-            // 2. Payment Filter
-            const filterVal = filterInput.value;
-            if (filterVal === 'fully_paid') {
-                filtered = filtered.filter(s => s.remaining === 0);
-            } else if (filterVal === 'has_remaining') {
-                filtered = filtered.filter(s => s.remaining > 0);
-            }
-
-            // 3. Date Filter (New logic)
-            const dateVal = dateFilterInput.value;
-            if (dateVal !== 'all') {
-                const now = new Date();
-                // Reset to start of day for comparison
-                const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-                
-                filtered = filtered.filter(s => {
-                    if (!s.joinedDate) return false;
-                    const d = new Date(s.joinedDate);
-                    const sDate = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-                    
-                    if (dateVal === 'today') {
-                        return sDate.getTime() === today.getTime();
-                    } else if (dateVal === 'yesterday') {
-                        const yesterday = new Date(today);
-                        yesterday.setDate(today.getDate() - 1);
-                        return sDate.getTime() === yesterday.getTime();
-                    } else if (dateVal === 'this_week') {
-                        const oneWeekAgo = new Date(today);
-                        oneWeekAgo.setDate(today.getDate() - 7);
-                        return sDate >= oneWeekAgo;
-                    } else if (dateVal === 'this_month') {
-                        return sDate.getMonth() === today.getMonth() && sDate.getFullYear() === today.getFullYear();
-                    }
-                    return true;
-                });
-            }
-
-            // 4. Sorting
-            const sortVal = sortInput.value;
-            filtered.sort((a, b) => {
-                const nameA = a.name || '';
-                const nameB = b.name || '';
-                if (sortVal === 'name_asc') return nameA.localeCompare(nameB);
-                if (sortVal === 'name_desc') return nameB.localeCompare(nameA);
-                
-                if (sortVal === 'date_desc') {
-                    const dateA = a.joinedDate ? new Date(a.joinedDate) : new Date(0);
-                    const dateB = b.joinedDate ? new Date(b.joinedDate) : new Date(0);
-                    return dateB - dateA;
-                }
-
-                if (sortVal === 'remaining_desc') return (b.remaining || 0) - (a.remaining || 0);
-                if (sortVal === 'paid_desc') return (b.paid || 0) - (a.paid || 0);
-                return 0;
-            });
-
-            // Update Counts
-            countDisplay.innerText = filtered.length;
-            const totalDebt = filtered.reduce((sum, s) => sum + (parseFloat(s.remaining) || 0), 0);
-            totalDebtDisplay.innerText = `$${totalDebt.toLocaleString()}`;
-
-            grid.innerHTML = '';
-            
-            if (filtered.length === 0) {
-                emptyState.classList.remove('hidden'); 
-                return;
+            if (Clerk.user) {
+                document.getElementById("loading").classList.add("hidden");
+                document.getElementById("signed-in").classList.remove("hidden");
+                document.getElementById("welcome-message").innerText = `Welcome, ${Clerk.user.firstName}!`;
             } else {
-                emptyState.classList.add('hidden');
+                document.getElementById("loading").classList.add("hidden");
+                document.getElementById("signed-out").classList.remove("hidden");
+                Clerk.mountSignIn(document.getElementById("clerk-sign-in"), {
+                    appearance: {
+                        variables: { colorPrimary: '#0F9E99' }
+                    }
+                });
             }
-
-            // Render Grid
-            filtered.forEach((s, index) => {
-                const originalIndex = students.indexOf(s);
-                const isPaidOff = s.remaining === 0;
-                
-                const statusColor = isPaidOff 
-                    ? 'bg-[var(--primary-color)] text-white' 
-                    : 'bg-[var(--error-red)]/10 text-[var(--error-red)]';
-                const statusText = isPaidOff ? 'Fully Paid' : 'Payment Due';
-                const borderColor = isPaidOff ? 'border-[var(--primary-color)]' : 'border-[var(--error-red)]';
-                const remainingColor = s.remaining > 0 ? 'text-[var(--error-red)]' : 'text-[var(--primary-color)]';
-                
-                const sPhone = s.studentPhone || '';
-                const pPhone = s.parentPhone || '';
-
-                // Format Date for display
-                let dateDisplay = '';
-                if (s.joinedDate) {
-                    const d = new Date(s.joinedDate);
-                    dateDisplay = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
-                }
-
-                const card = document.createElement('div');
-                card.className = `bg-[var(--card-bg)] rounded-xl card-shadow p-5 border-l-4 ${borderColor}`;
-                
-                card.innerHTML = `
-                    <div class="flex justify-between items-start mb-3">
-                        <div class="min-w-0 pr-2">
-                            <h3 class="font-bold text-lg text-[var(--text-color)] break-words">${s.name}</h3>
-                            <p class="text-sm text-gray-500 truncate"><i class="fas fa-envelope mr-1"></i> ${s.email}</p>
-                            ${dateDisplay ? `<p class="text-xs text-gray-400 mt-1"><i class="far fa-calendar-alt mr-1"></i> ${dateDisplay}</p>` : ''}
-                        </div>
-                        <span class="px-2 py-1 rounded text-xs font-bold ${statusColor} whitespace-nowrap flex-shrink-0">${statusText}</span>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-2 mb-4">
-                        <div class="bg-gray-50 p-2 rounded border border-gray-100">
-                            <p class="text-xs text-gray-400 uppercase">Student #</p>
-                            <p class="font-mono text-sm text-[var(--text-color)] font-medium">${sPhone}</p>
-                        </div>
-                        <div class="bg-gray-50 p-2 rounded border border-gray-100">
-                            <p class="text-xs text-gray-400 uppercase">Parent #</p>
-                            <p class="font-mono text-sm text-[var(--text-color)] font-medium">${pPhone}</p>
-                        </div>
-                    </div>
-
-                    <div class="border-t border-gray-100 pt-3 flex justify-between items-center">
-                        <div class="text-sm">
-                            <span class="text-gray-400">Paid:</span>
-                            <span class="font-bold text-[var(--text-color)]">$${s.paid}</span>
-                        </div>
-                        <div class="text-sm">
-                            <span class="text-gray-400">Remaining:</span>
-                            <span class="font-bold ${remainingColor}">$${s.remaining}</span>
-                        </div>
-                    </div>
-                    
-                    <div class="mt-3 grid grid-cols-2 gap-2">
-                         <a href="https://wa.me/${sPhone.replace(/^0/, '20')}" target="_blank" class="flex items-center justify-center bg-[#25D366]/10 text-[#25D366] py-2 rounded text-sm hover:bg-[#25D366]/20 transition border border-[#25D366]/20"><i class="fab fa-whatsapp text-lg mr-2"></i> Student</a>
-                         <a href="https://wa.me/${pPhone.replace(/^0/, '20')}" target="_blank" class="flex items-center justify-center bg-[#25D366]/10 text-[#25D366] py-2 rounded text-sm hover:bg-[#25D366]/20 transition border border-[#25D366]/20"><i class="fab fa-whatsapp text-lg mr-2"></i> Parent</a>
-                         
-                         <button onclick="openEditModal(${originalIndex})" class="flex items-center justify-center bg-gray-50 text-gray-600 py-2 rounded text-sm hover:bg-gray-100 transition border border-gray-200">
-                            <i class="fas fa-edit mr-2"></i> Edit
-                         </button>
-                         <a href="https://ermathexpert.online/wp-admin/users.php?s=${encodeURIComponent(s.email)}" target="_blank" class="flex items-center justify-center bg-[var(--primary-color)]/10 text-[var(--primary-color)] py-2 rounded text-sm hover:bg-[var(--primary-color)]/20 transition border border-[var(--primary-color)]/20">
-                            <i class="fas fa-user-circle mr-2"></i> Account
-                         </a>
-                    </div>
-                `;
-                grid.appendChild(card);
-            });
-        }
+        });
     </script>
 </body>
 </html>
