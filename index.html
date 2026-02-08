@@ -11,7 +11,6 @@
             --bg-color: #EFE9E0;
             --card-bg: #FFFFFF;
             --text-color: #333333;
-            --accent-green: #25D366;
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -36,18 +35,6 @@
         
         h1 { color: var(--primary-color); margin-bottom: 1rem; }
         p { color: var(--text-color); line-height: 1.5; }
-        
-        .btn {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            margin-top: 20px;
-        }
-        .btn:hover { background-color: var(--primary-hover); }
 
         .loader {
             border: 4px solid #f3f3f3;
@@ -61,7 +48,7 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 
-    <!-- YOUR OFFICIAL CLERK SCRIPT -->
+    <!-- CLERK SCRIPT -->
     <script
         async
         crossorigin="anonymous"
@@ -76,44 +63,48 @@
         <!-- Loading -->
         <div id="loading">
             <div class="loader"></div>
-            <p>Loading security...</p>
+            <p>Verifying access...</p>
         </div>
 
         <!-- Login Box -->
         <div id="signed-out" class="hidden">
-            <h1>Welcome</h1>
-            <p>Please sign in to continue.</p>
+            <h1>Welcome Back</h1>
+            <p>Please sign in to access the dashboard.</p>
             <div id="clerk-sign-in"></div>
         </div>
 
-        <!-- Secret Content -->
+        <!-- Redirect Message (Optional, seen briefly before redirect) -->
         <div id="signed-in" class="hidden">
-            <h1>🔒 Access Granted</h1>
-            <p id="welcome-message">Welcome!</p>
-            <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
-            <p style="background: #ecfdf5; color: #047857; padding: 15px; border-radius: 8px;">
-                <strong>Secret Data:</strong><br>
-                You are securely logged in.
-            </p>
-            <button class="btn" onclick="Clerk.signOut()">Sign Out</button>
+            <h1>✅ Success</h1>
+            <p>Redirecting to dashboard...</p>
+            <div class="loader"></div>
         </div>
     </div>
 
     <script>
+        // CHANGE THIS TO YOUR DESTINATION PAGE
+        const REDIRECT_URL = "https://mmoh16.github.io/bulk-sender/data-View.html"; 
+
         window.addEventListener("load", async function () {
             await Clerk.load();
 
             if (Clerk.user) {
+                // 1. User is ALREADY logged in -> Redirect immediately
                 document.getElementById("loading").classList.add("hidden");
                 document.getElementById("signed-in").classList.remove("hidden");
-                document.getElementById("welcome-message").innerText = `Welcome, ${Clerk.user.firstName}!`;
+                window.location.href = REDIRECT_URL;
             } else {
+                // 2. User is NOT logged in -> Show Sign In form
                 document.getElementById("loading").classList.add("hidden");
                 document.getElementById("signed-out").classList.remove("hidden");
+                
                 Clerk.mountSignIn(document.getElementById("clerk-sign-in"), {
                     appearance: {
                         variables: { colorPrimary: '#0F9E99' }
-                    }
+                    },
+                    // 3. This tells Clerk where to go AFTER they finish signing in
+                    afterSignInUrl: REDIRECT_URL,
+                    afterSignUpUrl: REDIRECT_URL
                 });
             }
         });
