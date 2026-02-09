@@ -501,61 +501,26 @@
     <script>
 function downloadCSV() {
     const btn = document.getElementById('btnCsv');
-    const statusEl = document.getElementById('csvStatusMsg');
     const originalContent = btn.innerHTML;
     
-    // Hide previous status
-    if(statusEl) statusEl.style.display = 'none';
+    // 1. Visual Feedback
+    btn.innerText = "Starting Download...";
+    
+    // 2. Create a hidden form to force the download
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = "https://api.mark-attendance.com/webhook/d16d407d-79c2-4d70-b599-fe934a87475d";
+    form.target = "_blank"; // This ensures it doesn't refresh your current page
+    
+    // 3. Submit and cleanup
+    document.body.appendChild(form);
+    form.submit();
+    document.body.removeChild(form);
 
-    // Show Loading
-    btn.innerHTML = spinnerSVG + " Downloading...";
-    btn.disabled = true;
-
-    const targetUrl = "https://api.mark-attendance.com/webhook/d16d407d-79c2-4d70-b599-fe934a87475d";
-    // Using corsproxy to prevent browser blocking
-    const proxyUrl = "https://corsproxy.io/?" + encodeURIComponent(targetUrl);
-
-    fetch(proxyUrl, {
-        method: 'POST',
-    })
-    .then(response => {
-        if (response.ok) {
-            return response.blob(); // Convert response to a file object
-        } else {
-            throw new Error("Failed to fetch file");
-        }
-    })
-    .then(blob => {
-        // Create a temporary link to force the download
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = "attendance_report.csv"; // The name of the downloaded file
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        window.URL.revokeObjectURL(url); // Cleanup
-        
-        // Show success briefly
-        if(statusEl) {
-             statusEl.innerText = "Download Started!";
-             statusEl.className = 'status-success';
-             statusEl.style.display = 'block';
-        }
-    })
-    .catch(error => {
-        if(statusEl) {
-            statusEl.innerText = "Error downloading file.";
-            statusEl.className = 'status-error';
-            statusEl.style.display = 'block';
-        }
-        console.error(error);
-    })
-    .finally(() => {
-        // Reset button
+    // 4. Reset button after 2 seconds
+    setTimeout(() => {
         btn.innerHTML = originalContent;
-        btn.disabled = false;
-    });
+    }, 2000);
 }
         // --- MENU TOGGLE LOGIC ---
         function toggleMenu() {
