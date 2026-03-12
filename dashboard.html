@@ -598,46 +598,71 @@ function downloadCSV() {
             .finally(() => { btn.innerHTML = originalContent; btn.disabled = false; });
         }
 
-        function sendSessionDetails() {
-            const zoomLink = document.getElementById('zoomLink').value;
-            const zoomId = document.getElementById('zoomId').value;
-            const zoomPass = document.getElementById('zoomPass').value;
-            const sessionNum = document.getElementById('sessionNum').value;
-            const btn = document.getElementById('btnSession');
-            const originalContent = btn.innerHTML;
+function sendSessionDetails() {
+    const zoomLink = document.getElementById('zoomLink').value;
+    const zoomId = document.getElementById('zoomId').value;
+    const zoomPass = document.getElementById('zoomPass').value;
+    const sessionNum = document.getElementById('sessionNum').value;
+    const btn = document.getElementById('btnSession');
+    const originalContent = btn.innerHTML;
 
-            if (!zoomLink || !zoomId || !zoomPass || !sessionNum) {
-                showStatus('sessionStatusMsg', "Please fill in all fields.", "error");
-                return;
+    if (!zoomLink || !zoomId || !zoomPass || !sessionNum) {
+        showStatus('sessionStatusMsg', "Please fill in all fields.", "error");
+        return;
+    }
+
+    document.getElementById('sessionStatusMsg').style.display = 'none';
+    
+    // Call your server directly, bypassing the proxy
+    const targetUrl = "https://api.mark-attendance.com/webhook/session-details";
+
+    btn.innerHTML = spinnerSVG + " Sending...";
+    btn.disabled = true;
+
+    const payload = { 
+        zoomLink: zoomLink, 
+        zoomId: zoomId, 
+        zoomPassword: zoomPass, 
+        sessionNumber: parseInt(sessionNum) 
+    };
+
+    fetch(targetUrl, {
+        method: 'POST',
+        headers: { 
+            'Content-Type': 'application/json', 
+            'Accept': 'application/json' 
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(async response => {
+        const text = await response.text();
+        if (response.ok) {
+            showStatus('sessionStatusMsg', "Session Details Sent!", "success");
+            // Optional: clear inputs after success
+            document.getElementById('zoomLink').value = '';
+            document.getElementById('zoomId').value = '';
+            document.getElementById('zoomPass').value = '';
+            document.getElementById('sessionNum').value = '';
+        } else {
+            let displayMsg = `Error (${response.status})`;
+            try { 
+                const jsonError = JSON.parse(text); 
+                if(jsonError.message) displayMsg += `: ${jsonError.message}`; 
+            } catch(e) { 
+                displayMsg += `: ${text}`; 
             }
-
-            document.getElementById('sessionStatusMsg').style.display = 'none';
-            const targetUrl = "https://api.mark-attendance.com/webhook/session-details";
-            const proxyUrl = "https://corsproxy.io/?" + encodeURIComponent(targetUrl);
-
-            btn.innerHTML = spinnerSVG + " Sending...";
-            btn.disabled = true;
-
-            const payload = { zoomLink: zoomLink, zoomId: zoomId, zoomPassword: zoomPass, sessionNumber: parseInt(sessionNum) };
-
-            fetch(proxyUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                body: JSON.stringify(payload)
-            })
-            .then(async response => {
-                const text = await response.text();
-                if (response.ok) {
-                    showStatus('sessionStatusMsg', "Session Details Sent!", "success");
-                } else {
-                    let displayMsg = `Error (${response.status})`;
-                    try { const jsonError = JSON.parse(text); if(jsonError.message) displayMsg += `: ${jsonError.message}`; } catch(e) { displayMsg += `: ${text}`; }
-                    showStatus('sessionStatusMsg', displayMsg.substring(0, 60), "error");
-                }
-            })
-            .catch(error => { showStatus('sessionStatusMsg', "Network Error. Check connection.", "error"); })
-            .finally(() => { btn.innerHTML = originalContent; btn.disabled = false; });
+            showStatus('sessionStatusMsg', displayMsg.substring(0, 60), "error");
         }
+    })
+    .catch(error => { 
+        console.error("Fetch Error:", error);
+        showStatus('sessionStatusMsg', "Network Error. Check connection.", "error"); 
+    })
+    .finally(() => { 
+        btn.innerHTML = originalContent; 
+        btn.disabled = false; 
+    });
+}
     </script>
         <!-- 3. SECURITY: Gatekeeper Logic -->
     <script>
